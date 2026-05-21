@@ -6,13 +6,17 @@
   "scripts": {
     "build": "tsc",
     "test": "npm run build && node test.js",
-    "release": "standard-version"
+    "release": "standard-version",
+    "prepare": "husky install"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@commitlint/cli": "^21.0.1",
+    "@commitlint/config-conventional": "^21.0.1",
+    "husky": "^9.1.7",
     "standard-version": "^9.5.0"
   }
 }
