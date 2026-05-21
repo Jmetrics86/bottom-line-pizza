@@ -251,7 +251,7 @@ function updateOrbitingHands() {
 
 function renderStaff() {
     const staffData = [
-        { key: 'elbowGrease', name: 'Elbow Grease', icon: '🖐️', desc: 'Cheap manual effort. Orbiting hands tap for you.', btnText: 'SQUEEZE!' },
+        { key: 'elbowGrease', name: 'Elbow Grease', icon: '🖐️', desc: 'Cheap manual effort. Orbiting hands tap for you.', btnText: 'SLAP!' },
         { key: 'grandpa', name: 'Tired Grandpa', icon: '👴', desc: 'Cheap, forced out of retirement. Expired yeast.', btnText: 'DRAFT!' },
         { key: 'press', name: 'Dough Smasher', icon: '🚜', desc: 'Flattens dough wafer-thin instantly.', btnText: 'SMASH!' },
         { key: 'mixer', name: 'Industrial Vat', icon: '🛢️', desc: 'Mixes water with red dye #40.', btnText: 'DUMP!' },
