@@ -1,0 +1,13 @@
+body {
+    font-family: sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
+    padding: 20px;
+}
+#pizza-button {
+    font-size: 5rem;
+    padding: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
