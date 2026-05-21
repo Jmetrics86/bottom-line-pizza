@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js"
+    "build": "tsc",
+    "test": "npm run build && node test.js"
   },
   "keywords": [],
   "author": "",
