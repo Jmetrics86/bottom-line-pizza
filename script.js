@@ -504,10 +504,58 @@ function loadGame() {
     }
 }
 
+// Ticker Logic
+const ticker = document.getElementById('ticker');
+const tickerMessages = [
+    // Early game (0-100 pizzas)
+    "NEWS: Pizza demand is steady... mostly.", "RECEPTIONIST: Your mom called, asking if you're eating properly.", "PRESS: New local pizza place opens to zero fanfare.",
+    "SHAREHOLDER: Can we cut costs on the pepperoni? It's too round.", "RECEPTIONIST: An employee is asking for a chair. Deny it.",
+    // Mid game (100-1000 pizzas)
+    "PRESS: Health inspectors found something... green. Ignore it.", "RECEPTIONIST: Your friend called, they said the pizza tastes like plastic. Who cares?",
+    "SHAREHOLDER: Profits are up 2%! Keep up the cardboard crusts.", "SOCIAL: #BottomLinePizza is trending for all the wrong reasons.",
+    "RECEPTIONIST: Another call from the EPA. I told them you're in a meeting.",
+    // Late game (1000+ pizzas)
+    "PRESS: Bottom Line Pizza dominates! (With 99% market share of bad pizza).", "RECEPTIONIST: Your dad called, he's proud you're a CEO, even if it's... this.",
+    "SHAREHOLDER: We are officially a Fortune 500 company! Still no napkins, though.", "SOCIAL: Our new 'Synthetic Sauce' is causing minor skin irritations. It's fine.",
+    "RECEPTIONIST: The lawyers are on line 2, 3, and 4. I'll put them through?",
+    // Extra
+    "NEWS: Employees seen eating their own product? Scandalous.", "SHAREHOLDER: CEO bonus approved! Keep up the good work.",
+    "RECEPTIONIST: It's your landlord, they're asking about the rent again.", "PRESS: Is it even food? Local experts say 'technically'.",
+    "SOCIAL: Customer reported finding a gear in their pizza. That's free hardware!",
+    "NEWS: The pizza cutter has gone missing. Use your hands.", "RECEPTIONIST: Your cat called. Meow.",
+    "SHAREHOLDER: Why is the office floor sticky?", "PRESS: Bottom Line Pizza is now 'a national experience'.",
+    "RECEPTIONIST: The FDA sent a strongly-worded letter.", "SOCIAL: TikTok challenge: survive one slice.",
+    "NEWS: Production is at record highs. Efficiency is at 100%.", "RECEPTIONIST: Your friend is blocked. They won't stop complaining.",
+    "SHAREHOLDER: More plastic, more profit!", "PRESS: Bottom Line Pizza: 'It is food'.",
+    "RECEPTIONIST: The CEO of the plastic company is pleased.", "SOCIAL: #PizzaLife #MaybeToxic",
+    "NEWS: The kitchen is now officially a hazardous zone.", "RECEPTIONIST: Your mom again. She says you look tired.",
+    "SHAREHOLDER: We are considering synthetic pizza substitutes. Even cheaper!", "PRESS: 'Not the worst' - A review.",
+    "RECEPTIONIST: The staff is asking for ventilation.", "SOCIAL: Our customers are... resilient.",
+    "NEWS: Record profit! Record stomach aches!", "RECEPTIONIST: Your uncle called to complain about the pizza.",
+    "SHAREHOLDER: Can we make the pizza thinner?", "PRESS: 'An innovation in food technology'.",
+    "RECEPTIONIST: The fire department called. Just tell them it's a 'controlled experiment'.", "SOCIAL: Is it edible? Debatable.",
+    "NEWS: Another record broken! We have no idea what it is.", "RECEPTIONIST: Your friend is calling again. Just ignore them.",
+    "SHAREHOLDER: We need more growth!", "PRESS: 'A pizza-like substance'.",
+    "RECEPTIONIST: The local hospital is asking why our pizzas keep arriving.", "SOCIAL: Our pizza is a cult classic. Literally.",
+    "NEWS: The pizza machine is making weird noises.", "RECEPTIONIST: Your dad says he saw the news. He's... confused.",
+    "SHAREHOLDER: Keep it cheap, keep it fast!", "PRESS: 'Truly a unique experience'."
+];
+
+function updateTicker() {
+    // Pick a message based on progress
+    const progress = Math.min(1, state.lifetimePizzas / 50000);
+    const index = Math.floor(progress * (tickerMessages.length - 1));
+    ticker.textContent = tickerMessages[index];
+}
+
 // Initialize
 window.addEventListener('DOMContentLoaded', () => {
     loadGame();
     renderAll();
+    
+    // Ticker update loop
+    setInterval(updateTicker, 15000);
+    updateTicker();
     
     // Event delegation for Staff & Machinery shop items
     staffContainer.addEventListener('click', (e) => {

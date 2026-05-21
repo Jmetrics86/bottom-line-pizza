@@ -71,6 +71,30 @@ h1 {
     font-style: italic;
 }
 
+/* Ticker Styling */
+.ticker-section {
+    grid-column: 1 / -1;
+    background: #111118;
+    border: 2px solid var(--border-color);
+    padding: 10px;
+    border-radius: 4px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.ticker-content {
+    display: inline-block;
+    font-family: var(--pixel-font);
+    font-size: 0.6rem;
+    color: var(--accent-yellow);
+    animation: ticker-scroll 30s linear infinite;
+}
+
+@keyframes ticker-scroll {
+    from { transform: translateX(100%); }
+    to { transform: translateX(-100%); }
+}
+
 /* Responsive Grid Layout */
 .grid-layout {
     display: grid;
