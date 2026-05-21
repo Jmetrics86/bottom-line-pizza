@@ -241,25 +241,30 @@ function updateQualityUI() {
     const pepB = Math.round(ratio * 40 + (1 - ratio) * 50);
 
     const pizzaClicker = document.getElementById('pizza-clicker');
-    if (pizzaClicker) {
-        pizzaClicker.style.setProperty('--crust-color', `rgb(${crustR}, ${crustG}, ${crustB})`);
-        pizzaClicker.style.setProperty('--crust-border', `rgb(${Math.round(crustR*0.7)}, ${Math.round(crustG*0.7)}, ${Math.round(crustB*0.7)})`);
-        pizzaClicker.style.setProperty('--cheese-color', `rgb(${cheeseR}, ${cheeseG}, ${cheeseB})`);
-        pizzaClicker.style.setProperty('--pep-color', `rgb(${pepR}, ${pepG}, ${pepB})`);
-        pizzaClicker.style.setProperty('--pep-border', `rgb(${Math.round(pepR*0.7)}, ${Math.round(pepG*0.7)}, ${Math.round(pepB*0.7)})`);
+    const pizzaSvg = document.getElementById('pizza-svg');
+    const target = pizzaSvg || pizzaClicker;
+    
+    if (target) {
+        target.style.setProperty('--crust-color', `rgb(${crustR}, ${crustG}, ${crustB})`);
+        target.style.setProperty('--crust-border', `rgb(${Math.round(crustR*0.7)}, ${Math.round(crustG*0.7)}, ${Math.round(crustB*0.7)})`);
+        target.style.setProperty('--cheese-color', `rgb(${cheeseR}, ${cheeseG}, ${cheeseB})`);
+        target.style.setProperty('--pep-color', `rgb(${pepR}, ${pepG}, ${pepB})`);
+        target.style.setProperty('--pep-border', `rgb(${Math.round(pepR*0.7)}, ${Math.round(pepG*0.7)}, ${Math.round(pepB*0.7)})`);
         
         // Bubbles color and opacity (more intense as quality drops further below zero)
         const bubbleR = Math.round(ratio * 255 + (1 - ratio) * 57); 
         const bubbleG = Math.round(ratio * 213 + (1 - ratio) * 255);
         const bubbleB = Math.round(ratio * 79 + (1 - ratio) * 20);
-        pizzaClicker.style.setProperty('--bubble-color', `rgb(${bubbleR}, ${bubbleG}, ${bubbleB})`);
+        target.style.setProperty('--bubble-color', `rgb(${bubbleR}, ${bubbleG}, ${bubbleB})`);
         
         // Opacity is 0 at 100% quality, and scales up to 1.0 as it falls below 0%
         const bubbleOpacity = Math.max(0, Math.min(1.0, (100 - q) / 100));
-        pizzaClicker.style.setProperty('--bubble-opacity', bubbleOpacity.toFixed(2));
+        target.style.setProperty('--bubble-opacity', bubbleOpacity.toFixed(2));
         
         // Also desaturate the pizza container on lower quality, capping minimum saturation at 0.1
-        pizzaClicker.style.filter = `saturate(${Math.max(0.1, ratio).toFixed(2)})`;
+        if (pizzaClicker) {
+            pizzaClicker.style.filter = `saturate(${Math.max(0.1, ratio).toFixed(2)})`;
+        }
     }
 
     // Update SVG Layer Opacities based on quality

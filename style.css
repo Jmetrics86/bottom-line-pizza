@@ -12,6 +12,15 @@
     --text-muted: #88889c;
     --pixel-font: 'Press Start 2P', monospace;
     --tech-font: 'Share Tech Mono', monospace;
+    
+    /* Pizza Baseline Default Colors */
+    --crust-color: #d84315;
+    --crust-border: #8d2400;
+    --cheese-color: #ffd54f;
+    --pep-color: #c62828;
+    --pep-border: #5d0000;
+    --bubble-color: #ffd54f;
+    --bubble-opacity: 0;
 }
 
 * {
