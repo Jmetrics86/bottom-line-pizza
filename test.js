@@ -10,6 +10,7 @@ const mockElements = {};
 const getMockElement = (id) => {
     if (!mockElements[id]) {
         const classes = new Set();
+        const attributes = {};
         mockElements[id] = {
             textContent: '',
             style: { 
@@ -26,8 +27,12 @@ const getMockElement = (id) => {
                 contains(cls) { return classes.has(cls); }
             },
             classes,
+            attributes,
+            setAttribute: (key, val) => { attributes[key] = val; },
+            getAttribute: (key) => attributes[key],
             innerHTML: '',
             querySelectorAll: () => [],
+            querySelector: () => null,
             appendChild: () => {},
             addEventListener: () => {}
         };
@@ -67,6 +72,8 @@ const documentMock = {
         classList: { add() {} }
     }),
     addEventListener: () => {},
+    querySelectorAll: () => [],
+    querySelector: () => null,
     readyState: 'loading'
 };
 
