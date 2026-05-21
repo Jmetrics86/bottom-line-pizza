@@ -2,19 +2,124 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bottom Line Pizza Clicker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bottom Line Pizza - Corporate Clicker</title>
+    <!-- Pixel art font from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="game">
-        <h1>Bottom Line Pizza</h1>
-        <div id="pizza-container">
-            <button id="pizza-button">🍕</button>
+    <div id="game-container">
+        <!-- Header Section -->
+        <header>
+            <h1>BOTTOM LINE PIZZA</h1>
+            <div id="motto">"Where margins are thick and the crust is cardboard"</div>
+        </header>
+
+        <!-- Main Responsive Grid -->
+        <div class="grid-layout">
+            <!-- Clicker Column -->
+            <section class="column clicker-section">
+                <div class="stats-compact">
+                    <div class="stat-box">
+                        <div class="stat-label">Pizzas Produced</div>
+                        <div class="stat-value" id="pizza-count">0</div>
+                        <div class="stat-sub" id="pps-display">0.0 per second</div>
+                    </div>
+                </div>
+
+                <div class="pizza-clicker-wrapper">
+                    <div id="pizza-clicker" class="pizza-pixel-art">
+                        <!-- Custom CSS Pixel Art Pizza -->
+                        <div class="crust"></div>
+                        <div class="cheese"></div>
+                        <div class="mold-spots" id="mold-spots"></div>
+                        <div class="toppings" id="pizza-toppings"></div>
+                        <div class="pizza-overlay">TAP!</div>
+                    </div>
+                </div>
+                
+                <div class="tap-hint">Tap Pizza to Cut Corners</div>
+            </section>
+
+            <!-- Stats & Quality Column -->
+            <section class="column info-section">
+                <div class="section-header">CORPORATE METRICS</div>
+                
+                <div class="quality-card">
+                    <div class="quality-header">
+                        <span>PIZZA QUALITY</span>
+                        <span id="quality-pct" class="quality-good">100%</span>
+                    </div>
+                    <div class="quality-bar-container">
+                        <div id="quality-bar" class="quality-bar-fill"></div>
+                    </div>
+                    <div id="quality-status" class="quality-status-text">
+                        Freshly made standard microwave-level pizza.
+                    </div>
+                    <div id="quality-effect" class="quality-effect-text">
+                        Profit Multiplier: 1.0x
+                    </div>
+                </div>
+
+                <div class="financials-card">
+                    <div class="metric-row">
+                        <span>Total Lifetime Pizzas:</span>
+                        <strong id="lifetime-pizzas">0</strong>
+                    </div>
+                    <div class="metric-row">
+                        <span>Manual Tap Power:</span>
+                        <strong id="click-power">1 Pizza</strong>
+                    </div>
+                    <div class="metric-row">
+                        <span>Cost Cutting Multiplier:</span>
+                        <strong id="cost-cut-mult">1.0x</strong>
+                    </div>
+                </div>
+
+                <!-- Web Audio Controls -->
+                <div class="audio-controls">
+                    <button id="mute-btn">🔊 Sound On</button>
+                    <button id="reset-btn">⚠️ Reset Progress</button>
+                </div>
+            </section>
+
+            <!-- Shop / Upgrades Column -->
+            <section class="column shop-section">
+                <div class="section-header">EXPLOITATION HUB</div>
+                
+                <!-- Lock overlay until 10 clicks -->
+                <div id="shop-lock" class="shop-lock-overlay">
+                    <div class="lock-box">
+                        <div class="lock-icon">🔒</div>
+                        <h3>PRODUCTION LOCKED</h3>
+                        <p>Manually produce <strong id="lock-target">10</strong> pizzas to unlock kitchen staffing.</p>
+                    </div>
+                </div>
+
+                <div class="shop-tabs">
+                    <button id="tab-staff" class="tab-btn active">STAFF & MACHINERY</button>
+                    <button id="tab-upgrades" class="tab-btn">CUT CORNERS</button>
+                </div>
+
+                <!-- Staff items list -->
+                <div id="staff-container" class="shop-list">
+                    <!-- Grandpas and other assets will be dynamically rendered here -->
+                </div>
+
+                <!-- Upgrades list -->
+                <div id="upgrades-container" class="shop-list hidden">
+                    <!-- Dynamic upgrades here -->
+                </div>
+            </section>
         </div>
-        <p>Pizzas Produced: <span id="count">0</span></p>
-        <p>Pizza Quality: <span id="quality">100</span>%</p>
     </div>
+
+    <!-- Click floating numbers container -->
+    <div id="click-particles-container"></div>
+
     <script src="script.js"></script>
 </body>
 </html>
