@@ -9,9 +9,10 @@
     --accent-red: #ff3c00;
     --toxic-green: #39ff14;
     --text-light: #e0e0ed;
-    --text-muted: #88889c;
+    --text-muted: #9c9cae; /* Slightly lighter for better contrast */
     --pixel-font: 'Press Start 2P', monospace;
     --tech-font: 'Share Tech Mono', monospace;
+    --body-font: 'VT323', monospace; /* Added for retro feel */
     
     /* Pizza Baseline Default Colors */
     --crust-color: #d84315;
@@ -21,6 +22,26 @@
     --pep-border: #5d0000;
     --bubble-color: #ffd54f;
     --bubble-opacity: 0;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    font-family: var(--body-font); /* Updated to body-font */
+    font-size: 18px; /* Slightly larger for VT323 */
+    line-height: 1.4;
+    overflow-x: hidden;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+/* Accessibility: Focus States */
+*:focus {
+    outline: 2px solid var(--accent-yellow);
+    outline-offset: 2px;
 }
 
 * {
@@ -422,9 +443,10 @@ h1 {
     outline: none;
 }
 
-.audio-controls button:hover, .tab-btn:hover {
-    background: #252538;
-    border-color: var(--text-muted);
+.audio-controls button:active, .tab-btn:active, .buy-btn:active {
+    transform: translateY(2px);
+    background: #15151f;
+    box-shadow: inset 1px 1px 2px #000;
 }
 
 #reset-btn {
@@ -566,6 +588,15 @@ h1 {
 
 .item-icon-small {
     font-size: 1.2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-icon-small svg {
+    width: 24px;
+    height: 24px;
+    color: var(--accent-yellow);
 }
 
 .item-name {
