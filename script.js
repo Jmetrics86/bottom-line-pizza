@@ -250,7 +250,6 @@ function updateOrbitingHands() {
 }
 
 function renderStaff() {
-    staffContainer.innerHTML = '';
     const staffData = [
         { key: 'elbowGrease', name: 'Elbow Grease', icon: '🖐️', desc: 'Cheap manual effort. Orbiting hands tap for you.', btnText: 'SQUEEZE!' },
         { key: 'grandpa', name: 'Tired Grandpa', icon: '👴', desc: 'Cheap, forced out of retirement. Expired yeast.', btnText: 'DRAFT!' },
@@ -265,27 +264,36 @@ function renderStaff() {
         const currentCost = getStaffCost(item.key);
         const canBuy = state.pizzas >= currentCost;
         
-        const itemDiv = document.createElement('div');
-        itemDiv.className = `shop-item ${canBuy ? 'can-buy' : ''}`;
-        itemDiv.innerHTML = `
-            <div class="item-info">
-                <div class="item-title-row">
-                    <span class="item-icon-small">${item.icon}</span>
-                    <span class="item-name">${item.name}</span>
-                    <span class="item-count">${d.count}</span>
+        let itemDiv = staffContainer.querySelector(`[data-key="${item.key}"]`);
+        
+        if (!itemDiv) {
+            itemDiv = document.createElement('div');
+            itemDiv.setAttribute('data-key', item.key);
+            itemDiv.innerHTML = `
+                <div class="item-info">
+                    <div class="item-title-row">
+                        <span class="item-icon-small">${item.icon}</span>
+                        <span class="item-name">${item.name}</span>
+                        <span class="item-count">${d.count}</span>
+                    </div>
+                    <div class="item-desc">${item.desc}</div>
+                    <div class="item-pps" style="color:var(--toxic-green);">+${(d.pps * getProfitMultiplier()).toFixed(1)} pps each</div>
+                    <div class="item-cost-row">Cost: ${currentCost.toLocaleString()} pizzas</div>
                 </div>
-                <div class="item-desc">${item.desc}</div>
-                <div class="item-desc" style="color:var(--toxic-green);">+${(d.pps * getProfitMultiplier()).toFixed(1)} pps each</div>
-                <div class="item-cost-row">Cost: ${currentCost.toLocaleString()} pizzas</div>
-            </div>
-            <button class="buy-btn" data-key="${item.key}">${item.btnText}</button>
-        `;
-        staffContainer.appendChild(itemDiv);
+                <button class="buy-btn" data-key="${item.key}">${item.btnText}</button>
+            `;
+            staffContainer.appendChild(itemDiv);
+        }
+
+        // Update existing element
+        itemDiv.className = `shop-item ${canBuy ? 'can-buy' : ''}`;
+        itemDiv.querySelector('.item-count').textContent = d.count;
+        itemDiv.querySelector('.item-pps').textContent = `+${(d.pps * getProfitMultiplier()).toFixed(1)} pps each`;
+        itemDiv.querySelector('.item-cost-row').textContent = `Cost: ${currentCost.toLocaleString()} pizzas`;
     });
 }
 
 function renderUpgrades() {
-    upgradesContainer.innerHTML = '';
     const upgradeData = [
         { key: 'expiredDough', name: 'Sour Yeast', icon: '🍞', desc: 'Smells funny, but doubles click power.', btnText: 'EXPIRE!' },
         { key: 'sawdust', name: 'Wood Flour', icon: '🪵', desc: 'Flour cut with 20% premium sawdust. Doubles click.', btnText: 'SAWDUST!' },
@@ -296,27 +304,38 @@ function renderUpgrades() {
 
     upgradeData.forEach(upg => {
         const d = state.upgrades[upg.key];
-        if (d.bought) return; // Hide purchased upgrades
+        let upgDiv = upgradesContainer.querySelector(`[data-key="${upg.key}"]`);
+        
+        if (d.bought) {
+            if (upgDiv) upgDiv.remove();
+            return;
+        }
         
         const canBuy = state.pizzas >= d.cost;
-        const upgDiv = document.createElement('div');
-        upgDiv.className = `shop-item ${canBuy ? 'can-buy' : ''}`;
-        upgDiv.innerHTML = `
-            <div class="item-info">
-                <div class="item-title-row">
-                    <span class="item-icon-small">${upg.icon}</span>
-                    <span class="item-name">${upg.name}</span>
+        
+        if (!upgDiv) {
+            upgDiv = document.createElement('div');
+            upgDiv.setAttribute('data-key', upg.key);
+            upgDiv.innerHTML = `
+                <div class="item-info">
+                    <div class="item-title-row">
+                        <span class="item-icon-small">${upg.icon}</span>
+                        <span class="item-name">${upg.name}</span>
+                    </div>
+                    <div class="item-desc">${upg.desc}</div>
+                    <div class="item-desc" style="color:var(--accent-red);">Reduces Quality: ${Math.abs(d.qualityMod)}%</div>
+                    <div class="item-cost-row">Cost: ${d.cost.toLocaleString()} pizzas</div>
                 </div>
-                <div class="item-desc">${upg.desc}</div>
-                <div class="item-desc" style="color:var(--accent-red);">Reduces Quality: ${Math.abs(d.qualityMod)}%</div>
-                <div class="item-cost-row">Cost: ${d.cost.toLocaleString()} pizzas</div>
-            </div>
-            <button class="buy-btn" data-key="${upg.key}">${upg.btnText}</button>
-        `;
-        upgradesContainer.appendChild(upgDiv);
+                <button class="buy-btn" data-key="${upg.key}">${upg.btnText}</button>
+            `;
+            upgradesContainer.appendChild(upgDiv);
+        }
+
+        // Update existing element
+        upgDiv.className = `shop-item ${canBuy ? 'can-buy' : ''}`;
     });
 
-    if (upgradesContainer.innerHTML === '') {
+    if (upgradesContainer.innerHTML === '' || upgradesContainer.children.length === 0) {
         upgradesContainer.innerHTML = '<div class="tap-hint" style="padding: 20px;">All corners cut! Perfect exploitation!</div>';
     }
 }
