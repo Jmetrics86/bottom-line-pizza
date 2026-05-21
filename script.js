@@ -8,11 +8,11 @@ let state = {
     clickPowerBase: 1,
     muted: false,
     staff: {
-        grandpa: { count: 0, cost: 15, pps: 0.1, baseCost: 15 },
-        press: { count: 0, cost: 100, pps: 1.0, baseCost: 100 },
-        mixer: { count: 0, cost: 1100, pps: 8.0, baseCost: 1100 },
-        shredder: { count: 0, cost: 12000, pps: 47.0, baseCost: 12000 },
-        inspector: { count: 0, cost: 130000, pps: 260.0, baseCost: 130000 }
+        elbowGrease: { count: 0, cost: 30, pps: 0.2, baseCost: 30 },
+        press: { count: 0, cost: 150, pps: 1.5, baseCost: 150 },
+        mixer: { count: 0, cost: 1500, pps: 12.0, baseCost: 1500 },
+        shredder: { count: 0, cost: 18000, pps: 75.0, baseCost: 18000 },
+        inspector: { count: 0, cost: 200000, pps: 400.0, baseCost: 200000 }
     },
     upgrades: {
         expiredDough: { bought: false, cost: 50, clickMult: 1.5, ppsMult: 1.0, qualityMod: -5 },
@@ -107,7 +107,7 @@ function getClickPower() {
 
 function getBasePps() {
     let base = 0;
-    base += state.staff.grandpa.count * state.staff.grandpa.pps;
+    base += state.staff.elbowGrease.count * state.staff.elbowGrease.pps;
     base += state.staff.press.count * state.staff.press.pps;
     base += state.staff.mixer.count * state.staff.mixer.pps;
     base += state.staff.shredder.count * state.staff.shredder.pps;
@@ -217,16 +217,45 @@ function renderAll() {
 
     // Quality Indicators
     updateQualityUI();
+
+    // Render Orbiting Hands
+    updateOrbitingHands();
+}
+
+function updateOrbitingHands() {
+    const container = document.getElementById('orbiting-hands-container');
+    if (!container) return;
+    
+    const count = state.staff.elbowGrease ? state.staff.elbowGrease.count : 0;
+    const currentHands = container.querySelectorAll('.hand-container').length;
+    
+    if (count === currentHands) return;
+    
+    container.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+        const angle = (360 / count) * i;
+        const handContainer = document.createElement('div');
+        handContainer.className = 'hand-container';
+        handContainer.style.transform = `rotate(${angle}deg)`;
+        
+        const hand = document.createElement('div');
+        hand.className = 'orbiting-hand';
+        hand.textContent = '👇';
+        hand.style.animationDelay = `${(i * -0.4).toFixed(2)}s`;
+        
+        handContainer.appendChild(hand);
+        container.appendChild(handContainer);
+    }
 }
 
 function renderStaff() {
     staffContainer.innerHTML = '';
     const staffData = [
-        { key: 'grandpa', name: 'Tired Grandpa', icon: '👴', desc: 'Cheap, forced out of retirement. Expired yeast.' },
-        { key: 'press', name: 'Dough Smasher', icon: '🚜', desc: 'Flattens dough wafer-thin instantly.' },
-        { key: 'mixer', name: 'Industrial Vat', icon: '🛢️', desc: 'Mixes water with red dye #40.' },
-        { key: 'shredder', name: 'Plastic Grater', icon: '⚙️', desc: 'Shreds cheap petroleum cheese blends.' },
-        { key: 'inspector', name: 'Shady Agent', icon: '🕶️', desc: 'Bribed inspector legalizing toxicity.' }
+        { key: 'elbowGrease', name: 'Elbow Grease', icon: '🖐️', desc: 'Cheap manual effort. Orbiting hands tap for you.', btnText: 'SQUEEZE!' },
+        { key: 'press', name: 'Dough Smasher', icon: '🚜', desc: 'Flattens dough wafer-thin instantly.', btnText: 'SMASH!' },
+        { key: 'mixer', name: 'Industrial Vat', icon: '🛢️', desc: 'Mixes water with red dye #40.', btnText: 'DUMP!' },
+        { key: 'shredder', name: 'Plastic Grater', icon: '⚙️', desc: 'Shreds cheap petroleum cheese blends.', btnText: 'SHRED!' },
+        { key: 'inspector', name: 'Shady Agent', icon: '🕶️', desc: 'Bribed inspector legalizing toxicity.', btnText: 'BRIBE!' }
     ];
 
     staffData.forEach(item => {
@@ -247,7 +276,7 @@ function renderStaff() {
                 <div class="item-desc" style="color:var(--toxic-green);">+${(d.pps * getProfitMultiplier()).toFixed(1)} pps each</div>
                 <div class="item-cost-row">Cost: ${currentCost.toLocaleString()} pizzas</div>
             </div>
-            <button class="buy-btn" onclick="buyStaff('${item.key}')">HIRE/BUY</button>
+            <button class="buy-btn" onclick="buyStaff('${item.key}')">${item.btnText}</button>
         `;
         staffContainer.appendChild(itemDiv);
     });
@@ -256,11 +285,11 @@ function renderStaff() {
 function renderUpgrades() {
     upgradesContainer.innerHTML = '';
     const upgradeData = [
-        { key: 'expiredDough', name: 'Sour Yeast', icon: '🍞', desc: 'Smells funny, but doubles click power.' },
-        { key: 'sawdust', name: 'Wood Flour', icon: '🪵', desc: 'Flour cut with 20% premium sawdust. Doubles click.' },
-        { key: 'pepperoni', name: 'Mystery Slices', icon: '🍖', desc: 'Slightly grey meat. Boosts pps by 1.5x.' },
-        { key: 'dilutedPaste', name: 'Watered Sauce', icon: '🥫', desc: 'Sauce is mostly food color. Doubles pps.' },
-        { key: 'glowLamps', name: 'Gamma Lamps', icon: '☢️', desc: 'Radiation heats instantly. 3x all production.' }
+        { key: 'expiredDough', name: 'Sour Yeast', icon: '🍞', desc: 'Smells funny, but doubles click power.', btnText: 'EXPIRE!' },
+        { key: 'sawdust', name: 'Wood Flour', icon: '🪵', desc: 'Flour cut with 20% premium sawdust. Doubles click.', btnText: 'SAWDUST!' },
+        { key: 'pepperoni', name: 'Mystery Slices', icon: '🍖', desc: 'Slightly grey meat. Boosts pps by 1.5x.', btnText: 'SLICE!' },
+        { key: 'dilutedPaste', name: 'Watered Sauce', icon: '🥫', desc: 'Sauce is mostly food color. Doubles pps.', btnText: 'DILUTE!' },
+        { key: 'glowLamps', name: 'Gamma Lamps', icon: '☢️', desc: 'Radiation heats instantly. 3x all production.', btnText: 'IRRADIATE!' }
     ];
 
     upgradeData.forEach(upg => {
@@ -280,7 +309,7 @@ function renderUpgrades() {
                 <div class="item-desc" style="color:var(--accent-red);">Reduces Quality: ${Math.abs(d.qualityMod)}%</div>
                 <div class="item-cost-row">Cost: ${d.cost.toLocaleString()} pizzas</div>
             </div>
-            <button class="buy-btn" onclick="buyUpgrade('${upg.key}')">CUT</button>
+            <button class="buy-btn" onclick="buyUpgrade('${upg.key}')">${upg.btnText}</button>
         `;
         upgradesContainer.appendChild(upgDiv);
     });
@@ -442,7 +471,20 @@ function loadGame() {
             // Migrate and merge saves to prevent breaking changes if variables change
             state = { ...state, ...parsed };
             // Ensure nested objects are correctly merged too
-            if (parsed.staff) state.staff = { ...state.staff, ...parsed.staff };
+            if (parsed.staff) {
+                // Migrate legacy grandpa save key to elbowGrease if present
+                if (parsed.staff.grandpa && !parsed.staff.elbowGrease) {
+                    state.staff.elbowGrease = { 
+                        count: parsed.staff.grandpa.count, 
+                        cost: Math.floor(30 * Math.pow(1.15, parsed.staff.grandpa.count)),
+                        pps: 0.2,
+                        baseCost: 30
+                    };
+                }
+                state.staff = { ...state.staff, ...parsed.staff };
+                // Clean up grandpa from the state staff
+                if (state.staff.grandpa) delete state.staff.grandpa;
+            }
             if (parsed.upgrades) state.upgrades = { ...state.upgrades, ...parsed.upgrades };
             
             muteBtn.textContent = state.muted ? "🔇 Sound Off" : "🔊 Sound On";
