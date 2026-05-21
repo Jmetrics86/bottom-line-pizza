@@ -1,0 +1,16 @@
+{
+  "bumpFiles": [
+    {
+      "filename": "package.json",
+      "type": "json"
+    },
+    {
+      "filename": "index.html",
+      "type": "plain-text",
+      "updater": {
+        "readVersion": "(?<=v)\\d+\\.\\d+\\.\\d+",
+        "writeVersion": "v$version"
+      }
+    }
+  ]
+}

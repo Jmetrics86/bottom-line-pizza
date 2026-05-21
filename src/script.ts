@@ -171,7 +171,11 @@ function formatNumber(value: number, precision: number = 0): string {
 }
 
 function getProfitMultiplier(): number {
-    return 1.0 + (100 - state.quality) * 0.02;
+    const baseMult = 1.0 + (100 - state.quality) * 0.02;
+    // Shrinkflation: Reduce multiplier as lifetime pizzas become massive
+    const progress = Math.min(1, Math.log10(state.lifetimePizzas + 1) / 300);
+    const shrinkflationFactor = 1.0 - (progress * 0.95); // Drastically reduce efficiency at end-game
+    return baseMult * shrinkflationFactor;
 }
 
 function getClickPower(): number {
@@ -639,8 +643,10 @@ setInterval(() => {
 
     const pps = getPizzasPerSecond();
     if (pps > 0) {
-        state.pizzas += pps * dt;
-        state.lifetimePizzas += pps * dt;
+        // Prevent overflow
+        const increment = pps * dt;
+        state.pizzas = Math.min(state.pizzas + increment, 1e305);
+        state.lifetimePizzas = Math.min(state.lifetimePizzas + increment, 1e305);
         state.quality -= 0.003 * pps * dt;
     }
     

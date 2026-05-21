@@ -5,10 +5,14 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && node test.js"
+    "test": "npm run build && node test.js",
+    "release": "standard-version"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {
+    "standard-version": "^9.5.0"
+  }
 }

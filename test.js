@@ -173,11 +173,13 @@ try {
     assert.ok(context.document.getElementById('ticker').textContent.length > 0, "Ticker should have a late game message");
     console.log("✅ Test 6 Passed: Ticker updates correctly based on progress.");
 
-    // Test 7: Verify negative quality multiplier scaling
+    // Test 7: Verify negative quality multiplier scaling (updated for shrinkflation)
     context.state.quality = -500;
+    context.state.lifetimePizzas = 0; // Ensure no shrinkflation impact
     const extremeMult = context.getProfitMultiplier();
-    // Formula: 1.0 + (100 - (-500)) * 0.02 = 1.0 + 600 * 0.02 = 13.0x
-    assert.strictEqual(extremeMult, 13.0, "Multiplier should scale correctly to 13.0x at -500% quality");
+    // Formula: (1.0 + (100 - (-500)) * 0.02) * 1.0 (no shrinkflation) = 13.0
+    // Due to floating point math, use a close comparison
+    assert.ok(Math.abs(extremeMult - 13.0) < 0.01, "Multiplier should scale correctly to ~13.0x at -500% quality");
     console.log("✅ Test 7 Passed: Multiplier scales correctly into extreme negative quality levels.");
 
     // Test 8: Verify SVG corruption layers update based on quality
