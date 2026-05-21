@@ -73,26 +73,28 @@ h1 {
 
 /* Ticker Styling */
 .ticker-section {
-    grid-column: 1 / -1;
-    background: #111118;
-    border: 2px solid var(--border-color);
-    padding: 10px;
+    background: var(--card-bg);
+    border: 3px solid var(--border-color);
+    box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+    padding: 12px;
     border-radius: 4px;
     overflow: hidden;
     white-space: nowrap;
+    width: 100%;
 }
 
 .ticker-content {
     display: inline-block;
     font-family: var(--pixel-font);
-    font-size: 0.6rem;
+    font-size: 0.65rem;
     color: var(--accent-yellow);
-    animation: ticker-scroll 30s linear infinite;
+    animation: ticker-scroll 35s linear infinite;
+    padding-left: 100%; /* Ensures the text starts completely off-screen to the right */
 }
 
 @keyframes ticker-scroll {
-    from { transform: translateX(100%); }
-    to { transform: translateX(-100%); }
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-100%, 0, 0); }
 }
 
 /* Responsive Grid Layout */
@@ -171,33 +173,55 @@ h1 {
     flex-grow: 1;
 }
 
-/* Pixel Art style CSS Pizza */
+/* SVG Rotating Pizza Clicker */
 #pizza-clicker {
     width: 200px;
     height: 200px;
-    background-color: #d84315; /* Crust */
     border-radius: 50%;
     position: relative;
     cursor: pointer;
-    box-shadow: inset -10px -10px 0px rgba(0,0,0,0.25), 0px 8px 16px rgba(0,0,0,0.4);
-    transition: transform 0.05s ease-out;
-    border: 8px solid #8d2400; /* Outer Crust Shadow */
-}
-
-#pizza-clicker::before {
-    content: '';
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
-    background-color: #ffd54f; /* Cheese */
-    border-radius: 50%;
-    box-shadow: inset 8px 8px 0px rgba(255,255,255,0.4);
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.4);
+    transition: transform 0.05s ease-out, filter 0.3s ease;
 }
 
 #pizza-clicker:active {
     transform: scale(0.93);
+}
+
+#pizza-svg-group {
+    transform-origin: 50px 50px;
+    animation: rotate-ccw 25s linear infinite;
+}
+
+@keyframes rotate-ccw {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+}
+
+/* Bubbling Animation */
+.pizza-bubble {
+    fill: var(--bubble-color, #ffd54f);
+    opacity: var(--bubble-opacity, 0);
+    transform-origin: var(--bx) var(--by);
+    animation: bubble-pop 2s infinite ease-in-out;
+    transition: opacity 0.3s ease, fill 0.3s ease;
+}
+
+@keyframes bubble-pop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    45% {
+        opacity: var(--bubble-opacity, 0.8);
+    }
+    55% {
+        opacity: var(--bubble-opacity, 0.8);
+    }
+    100% {
+        transform: scale(1.3);
+        opacity: 0;
+    }
 }
 
 .pizza-overlay {
