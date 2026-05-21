@@ -130,9 +130,9 @@ function getStaffCost(itemKey) {
     return Math.floor(item.baseCost * Math.pow(1.15, item.count));
 }
 
-// Quality Level Descriptions & styling
+// Quality Level Descriptions & styling with negative progression support
 function updateQualityUI() {
-    const qPct = Math.max(0, state.quality);
+    const q = state.quality;
     const qualText = document.getElementById('quality-pct');
     const qualBar = document.getElementById('quality-bar');
     const qualStatus = document.getElementById('quality-status');
@@ -140,35 +140,43 @@ function updateQualityUI() {
     const moldSpots = document.getElementById('mold-spots');
     const pizzaToppings = document.getElementById('pizza-toppings');
 
-    qualText.textContent = `${qPct.toFixed(1)}%`;
-    qualBar.style.width = `${qPct}%`;
+    qualText.textContent = `${q.toFixed(1)}%`;
     
     // Clear dynamic toppings and mold spots, rerender based on quality/upgrades
     moldSpots.innerHTML = '';
     
-    // Adjust colors and texts based on current quality tiers
+    // Adjust colors and texts based on current quality tiers (including negative tiers)
     qualText.className = '';
-    if (qPct > 75) {
+    
+    let statusText = "";
+    let barColor = "#4caf50";
+    let barWidth = "100%";
+    
+    if (q > 75) {
         qualText.classList.add('quality-good');
-        qualBar.style.backgroundColor = '#4caf50';
-        qualStatus.textContent = "Freshly made standard microwave-level pizza.";
-    } else if (qPct > 50) {
+        barColor = "#4caf50";
+        statusText = "Freshly made standard microwave-level pizza.";
+        barWidth = `${Math.min(100, q)}%`;
+    } else if (q > 50) {
         qualText.classList.add('quality-bad');
-        qualBar.style.backgroundColor = '#ffeb3b';
-        qualStatus.textContent = "Cardboard crust substituted. Grease puddles forming.";
-    } else if (qPct > 25) {
+        barColor = "#ffeb3b";
+        statusText = "Cardboard crust substituted. Grease puddles forming.";
+        barWidth = `${q}%`;
+    } else if (q > 25) {
         qualText.classList.add('quality-awful');
-        qualBar.style.backgroundColor = '#ff9800';
-        qualStatus.textContent = "Cheapest synthetic cheese used. Smells like hot plastic.";
+        barColor = "#ff9800";
+        statusText = "Cheapest synthetic cheese used. Smells like hot plastic.";
+        barWidth = `${q}%`;
         // Add sawdust particles on the pizza visual!
         if (state.upgrades.sawdust.bought) {
             pizzaToppings.innerHTML += '<div class="sawdust" style="top:30px; left:60px;"></div>';
             pizzaToppings.innerHTML += '<div class="sawdust" style="top:110px; left:40px;"></div>';
         }
-    } else {
+    } else if (q >= 0) {
         qualText.classList.add('quality-toxic');
-        qualBar.style.backgroundColor = '#39ff14';
-        qualStatus.textContent = "Literally biohazardous waste. Bribed inspector turned a blind eye.";
+        barColor = "#39ff14";
+        statusText = "Literally biohazardous waste. Bribed inspector turned a blind eye.";
+        barWidth = `${q}%`;
         
         // Add mold spots on pizza!
         moldSpots.innerHTML = `
@@ -176,6 +184,82 @@ function updateQualityUI() {
             <div class="mold" style="top: 100px; left: 120px;"></div>
             <div class="mold" style="top: 120px; left: 60px;"></div>
         `;
+    } else if (q >= -100) {
+        qualText.classList.add('quality-negative-mild');
+        barColor = "#9c27b0"; // purple
+        statusText = "Compromise: Replaced water with industrial sludge. Crust is self-heating.";
+        barWidth = `${Math.min(100, Math.abs(q))}%`;
+    } else if (q >= -300) {
+        qualText.classList.add('quality-negative-medium');
+        barColor = "#e91e63"; // deep pink
+        statusText = "Compromise: Pizza has developed a primitive central nervous system. It is whimpering.";
+        barWidth = `${Math.min(100, Math.abs(q) / 3)}%`;
+    } else if (q >= -700) {
+        qualText.classList.add('quality-negative-severe');
+        barColor = "#ff1744"; // glowing red
+        statusText = "Compromise: Classified as a Class-IV biological weapon. Banned in 194 sovereign nations.";
+        barWidth = `${Math.min(100, Math.abs(q) / 7)}%`;
+    } else if (q >= -1500) {
+        qualText.classList.add('quality-negative-insane');
+        barColor = "#000000"; // pitch black
+        statusText = "Compromise: Infused with weaponized plutonium. Spontaneously generates mini black holes.";
+        barWidth = `${Math.min(100, Math.abs(q) / 15)}%`;
+    } else {
+        qualText.classList.add('quality-negative-cosmic');
+        barColor = "#3f51b5"; // space indigo
+        statusText = "Compromise: Reality is collapsing. The crust is made of dark matter and corporate greed.";
+        barWidth = "100%";
+    }
+
+    qualBar.style.backgroundColor = barColor;
+    qualBar.style.width = barWidth;
+    qualStatus.textContent = statusText;
+
+    // Interpolate colors based on quality (0 to 100, supporting negative values!)
+    const ratio = Math.max(0, Math.min(100, q)) / 100; // 1 = fresh, 0 = toxic
+    
+    // Crust color: ratio * fresh + (1 - ratio) * toxic
+    // Fresh crust: #d84315 (R:216, G:67, B:21)
+    // Toxic crust: #4d5d30 (R:77, G:93, B:48)
+    const crustR = Math.round(ratio * 216 + (1 - ratio) * 77);
+    const crustG = Math.round(ratio * 67 + (1 - ratio) * 93);
+    const crustB = Math.round(ratio * 21 + (1 - ratio) * 48);
+    
+    // Cheese color:
+    // Fresh cheese: #ffd54f (R:255, G:213, B:79)
+    // Toxic cheese: #39ff14 (R:57, G:255, B:20) (neon toxic green) or green-grey
+    // Let's make it a sickly desaturated green-grey #7a8f65 (R:122, G:143, B:101)
+    const cheeseR = Math.round(ratio * 255 + (1 - ratio) * 122);
+    const cheeseG = Math.round(ratio * 213 + (1 - ratio) * 143);
+    const cheeseB = Math.round(ratio * 79 + (1 - ratio) * 101);
+
+    // Pep color (Pepperoni):
+    // Fresh pep: #c62828 (R:198, G:40, B:40)
+    // Toxic pep: #2e7d32 (R:46, G:125, B:50) (sickly dark green mold spots!)
+    const pepR = Math.round(ratio * 198 + (1 - ratio) * 46);
+    const pepG = Math.round(ratio * 40 + (1 - ratio) * 125);
+    const pepB = Math.round(ratio * 40 + (1 - ratio) * 50);
+
+    const pizzaClicker = document.getElementById('pizza-clicker');
+    if (pizzaClicker) {
+        pizzaClicker.style.setProperty('--crust-color', `rgb(${crustR}, ${crustG}, ${crustB})`);
+        pizzaClicker.style.setProperty('--crust-border', `rgb(${Math.round(crustR*0.7)}, ${Math.round(crustG*0.7)}, ${Math.round(crustB*0.7)})`);
+        pizzaClicker.style.setProperty('--cheese-color', `rgb(${cheeseR}, ${cheeseG}, ${cheeseB})`);
+        pizzaClicker.style.setProperty('--pep-color', `rgb(${pepR}, ${pepG}, ${pepB})`);
+        pizzaClicker.style.setProperty('--pep-border', `rgb(${Math.round(pepR*0.7)}, ${Math.round(pepG*0.7)}, ${Math.round(pepB*0.7)})`);
+        
+        // Bubbles color and opacity (more intense as quality drops further below zero)
+        const bubbleR = Math.round(ratio * 255 + (1 - ratio) * 57); 
+        const bubbleG = Math.round(ratio * 213 + (1 - ratio) * 255);
+        const bubbleB = Math.round(ratio * 79 + (1 - ratio) * 20);
+        pizzaClicker.style.setProperty('--bubble-color', `rgb(${bubbleR}, ${bubbleG}, ${bubbleB})`);
+        
+        // Opacity is 0 at 100% quality, and scales up to 1.0 as it falls below 0%
+        const bubbleOpacity = Math.max(0, Math.min(1.0, (100 - q) / 100));
+        pizzaClicker.style.setProperty('--bubble-opacity', bubbleOpacity.toFixed(2));
+        
+        // Also desaturate the pizza container on lower quality, capping minimum saturation at 0.1
+        pizzaClicker.style.filter = `saturate(${Math.max(0.1, ratio).toFixed(2)})`;
     }
 
     const mult = getProfitMultiplier();
@@ -359,8 +443,8 @@ window.buyUpgrade = function(upgKey) {
     if (state.pizzas >= upg.cost && !upg.bought) {
         state.pizzas -= upg.cost;
         upg.bought = true;
-        // Apply quality penalty
-        state.quality = Math.max(0, state.quality + upg.qualityMod);
+        // Apply quality penalty (can go negative!)
+        state.quality += upg.qualityMod;
         playBuySound();
         renderAll();
         saveGame();
@@ -375,8 +459,8 @@ pizzaButton.addEventListener('click', (e) => {
     state.pizzas += power;
     state.lifetimePizzas += power;
     
-    // Clicks slowly degrade quality (0.04% per click)
-    state.quality = Math.max(0, state.quality - 0.04);
+    // Clicks slowly degrade quality (0.04% per click, can go negative!)
+    state.quality -= 0.04;
     
     playClickSound();
     createParticle(e, power);
@@ -457,8 +541,8 @@ setInterval(() => {
         state.pizzas += pps * dt;
         state.lifetimePizzas += pps * dt;
         
-        // Automated factories slowly decrease quality over time (0.003% * PPS per second)
-        state.quality = Math.max(0, state.quality - (0.003 * pps * dt));
+        // Automated factories slowly decrease quality over time (0.003% * PPS per second, can go negative!)
+        state.quality -= 0.003 * pps * dt;
     }
     
     renderAll();

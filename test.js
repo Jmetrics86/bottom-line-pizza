@@ -156,6 +156,13 @@ try {
     assert.ok(context.document.getElementById('ticker').textContent.length > 0, "Ticker should have a late game message");
     console.log("✅ Test 6 Passed: Ticker updates correctly based on progress.");
 
+    // Test 7: Verify negative quality multiplier scaling
+    context.state.quality = -500;
+    const extremeMult = context.getProfitMultiplier();
+    // Formula: 1.0 + (100 - (-500)) * 0.02 = 1.0 + 600 * 0.02 = 13.0x
+    assert.strictEqual(extremeMult, 13.0, "Multiplier should scale correctly to 13.0x at -500% quality");
+    console.log("✅ Test 7 Passed: Multiplier scales correctly into extreme negative quality levels.");
+
     console.log("\n🎉 All tests passed successfully!");
     process.exit(0);
 } catch (error) {

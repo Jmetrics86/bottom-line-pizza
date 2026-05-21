@@ -313,6 +313,16 @@ h1 {
 .quality-bad { color: #ffeb3b; }
 .quality-awful { color: #ff9800; }
 .quality-toxic { color: var(--toxic-green); }
+.quality-negative-mild { color: #b388ff; text-shadow: 0px 0px 5px #9c27b0; }
+.quality-negative-medium { color: #ff80ab; text-shadow: 0px 0px 6px #e91e63; }
+.quality-negative-severe { color: #ff1744; text-shadow: 0px 0px 8px #ff1744; animation: flash-red 0.5s infinite alternate; }
+.quality-negative-insane { color: #cfd8dc; text-shadow: 0px 0px 10px #37474f; background: #000; padding: 2px 5px; border-radius: 2px; }
+.quality-negative-cosmic { color: #39ff14; text-shadow: 0px 0px 12px #39ff14, 0px 0px 20px #9c27b0; animation: wobble 1s infinite alternate; }
+
+@keyframes flash-red {
+    from { opacity: 0.5; }
+    to { opacity: 1; }
+}
 
 .quality-bar-container {
     width: 100%;
