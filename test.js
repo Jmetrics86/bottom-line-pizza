@@ -131,8 +131,9 @@ try {
     assert.strictEqual(elbowPps, 0.4, "2 Elbow Grease should produce 0.4 PPS at 100% quality");
     console.log("✅ Test 4 Passed: PPS increases correctly when hiring Elbow Grease.");
 
-    // Test 5: Legacy save migration
+    // Test 5: Verify Tired Grandpa works and loads from save
     context.state.staff.elbowGrease.count = 0;
+    context.state.staff.grandpa.count = 0;
     localStorageMock.setItem('bottomLinePizzaSave', JSON.stringify({
         pizzas: 50,
         staff: {
@@ -141,9 +142,8 @@ try {
     }));
     
     context.loadGame();
-    // Grandpa count of 3 should migrate to elbowGrease count of 3
-    assert.strictEqual(context.state.staff.elbowGrease.count, 3, "Legacy grandpa should successfully migrate to elbowGrease");
-    console.log("✅ Test 5 Passed: Legacy save files auto-migrate grandpa to elbowGrease.");
+    assert.strictEqual(context.state.staff.grandpa.count, 3, "Grandpa count should be loaded as 3 from save file");
+    console.log("✅ Test 5 Passed: Tired Grandpa loads and functions correctly.");
 
     console.log("\n🎉 All tests passed successfully!");
     process.exit(0);

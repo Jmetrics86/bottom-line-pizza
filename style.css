@@ -585,6 +585,17 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
+    /* Perfect circular orbit animation */
+    animation: orbit-container 8s linear infinite;
+}
+
+@keyframes orbit-container {
+    from {
+        transform: rotate(var(--angle));
+    }
+    to {
+        transform: rotate(calc(var(--angle) + 360deg));
+    }
 }
 
 .orbiting-hand {
@@ -596,40 +607,16 @@ h1 {
     left: calc(50% - 15px);
     top: calc(50% - 15px);
     transform-origin: center;
-    animation: orbit-tap 4s linear infinite;
+    /* Synchronized perfect circle tapping */
+    animation: hand-tap 0.4s ease-in-out infinite alternate;
 }
 
-@keyframes orbit-tap {
-    0% {
-        transform: rotate(0deg) translateY(-130px) rotate(0deg);
+@keyframes hand-tap {
+    from {
+        transform: translateY(-130px) scale(1);
     }
-    12.5% {
-        /* Tap in */
-        transform: rotate(45deg) translateY(-85px) rotate(-45deg) scale(1.3);
-    }
-    25% {
-        transform: rotate(90deg) translateY(-130px) rotate(-90deg);
-    }
-    37.5% {
-        /* Tap in */
-        transform: rotate(135deg) translateY(-85px) rotate(-135deg) scale(1.3);
-    }
-    50% {
-        transform: rotate(180deg) translateY(-130px) rotate(-180deg);
-    }
-    62.5% {
-        /* Tap in */
-        transform: rotate(225deg) translateY(-85px) rotate(-225deg) scale(1.3);
-    }
-    75% {
-        transform: rotate(270deg) translateY(-130px) rotate(-270deg);
-    }
-    87.5% {
-        /* Tap in */
-        transform: rotate(315deg) translateY(-85px) rotate(-315deg) scale(1.3);
-    }
-    100% {
-        transform: rotate(360deg) translateY(-130px) rotate(-360deg);
+    to {
+        transform: translateY(-115px) scale(1.25);
     }
 }
 

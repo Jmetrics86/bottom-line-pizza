@@ -9,10 +9,11 @@ let state = {
     muted: false,
     staff: {
         elbowGrease: { count: 0, cost: 30, pps: 0.2, baseCost: 30 },
-        press: { count: 0, cost: 150, pps: 1.5, baseCost: 150 },
-        mixer: { count: 0, cost: 1500, pps: 12.0, baseCost: 1500 },
-        shredder: { count: 0, cost: 18000, pps: 75.0, baseCost: 18000 },
-        inspector: { count: 0, cost: 200000, pps: 400.0, baseCost: 200000 }
+        grandpa: { count: 0, cost: 95, pps: 0.7, baseCost: 95 },
+        press: { count: 0, cost: 300, pps: 2.5, baseCost: 300 },
+        mixer: { count: 0, cost: 2000, pps: 15.0, baseCost: 2000 },
+        shredder: { count: 0, cost: 25000, pps: 90.0, baseCost: 25000 },
+        inspector: { count: 0, cost: 300000, pps: 500.0, baseCost: 300000 }
     },
     upgrades: {
         expiredDough: { bought: false, cost: 50, clickMult: 1.5, ppsMult: 1.0, qualityMod: -5 },
@@ -108,6 +109,7 @@ function getClickPower() {
 function getBasePps() {
     let base = 0;
     base += state.staff.elbowGrease.count * state.staff.elbowGrease.pps;
+    base += state.staff.grandpa.count * state.staff.grandpa.pps;
     base += state.staff.press.count * state.staff.press.pps;
     base += state.staff.mixer.count * state.staff.mixer.pps;
     base += state.staff.shredder.count * state.staff.shredder.pps;
@@ -236,12 +238,11 @@ function updateOrbitingHands() {
         const angle = (360 / count) * i;
         const handContainer = document.createElement('div');
         handContainer.className = 'hand-container';
-        handContainer.style.transform = `rotate(${angle}deg)`;
+        handContainer.style.setProperty('--angle', `${angle}deg`);
         
         const hand = document.createElement('div');
         hand.className = 'orbiting-hand';
         hand.textContent = '👇';
-        hand.style.animationDelay = `${(i * -0.4).toFixed(2)}s`;
         
         handContainer.appendChild(hand);
         container.appendChild(handContainer);
@@ -252,6 +253,7 @@ function renderStaff() {
     staffContainer.innerHTML = '';
     const staffData = [
         { key: 'elbowGrease', name: 'Elbow Grease', icon: '🖐️', desc: 'Cheap manual effort. Orbiting hands tap for you.', btnText: 'SQUEEZE!' },
+        { key: 'grandpa', name: 'Tired Grandpa', icon: '👴', desc: 'Cheap, forced out of retirement. Expired yeast.', btnText: 'DRAFT!' },
         { key: 'press', name: 'Dough Smasher', icon: '🚜', desc: 'Flattens dough wafer-thin instantly.', btnText: 'SMASH!' },
         { key: 'mixer', name: 'Industrial Vat', icon: '🛢️', desc: 'Mixes water with red dye #40.', btnText: 'DUMP!' },
         { key: 'shredder', name: 'Plastic Grater', icon: '⚙️', desc: 'Shreds cheap petroleum cheese blends.', btnText: 'SHRED!' },
@@ -276,7 +278,7 @@ function renderStaff() {
                 <div class="item-desc" style="color:var(--toxic-green);">+${(d.pps * getProfitMultiplier()).toFixed(1)} pps each</div>
                 <div class="item-cost-row">Cost: ${currentCost.toLocaleString()} pizzas</div>
             </div>
-            <button class="buy-btn" onclick="buyStaff('${item.key}')">${item.btnText}</button>
+            <button class="buy-btn" data-key="${item.key}">${item.btnText}</button>
         `;
         staffContainer.appendChild(itemDiv);
     });
@@ -309,7 +311,7 @@ function renderUpgrades() {
                 <div class="item-desc" style="color:var(--accent-red);">Reduces Quality: ${Math.abs(d.qualityMod)}%</div>
                 <div class="item-cost-row">Cost: ${d.cost.toLocaleString()} pizzas</div>
             </div>
-            <button class="buy-btn" onclick="buyUpgrade('${upg.key}')">${upg.btnText}</button>
+            <button class="buy-btn" data-key="${upg.key}">${upg.btnText}</button>
         `;
         upgradesContainer.appendChild(upgDiv);
     });
@@ -472,18 +474,7 @@ function loadGame() {
             state = { ...state, ...parsed };
             // Ensure nested objects are correctly merged too
             if (parsed.staff) {
-                // Migrate legacy grandpa save key to elbowGrease if present
-                if (parsed.staff.grandpa && !parsed.staff.elbowGrease) {
-                    state.staff.elbowGrease = { 
-                        count: parsed.staff.grandpa.count, 
-                        cost: Math.floor(30 * Math.pow(1.15, parsed.staff.grandpa.count)),
-                        pps: 0.2,
-                        baseCost: 30
-                    };
-                }
                 state.staff = { ...state.staff, ...parsed.staff };
-                // Clean up grandpa from the state staff
-                if (state.staff.grandpa) delete state.staff.grandpa;
             }
             if (parsed.upgrades) state.upgrades = { ...state.upgrades, ...parsed.upgrades };
             
@@ -499,6 +490,28 @@ window.addEventListener('DOMContentLoaded', () => {
     loadGame();
     renderAll();
     
+    // Event delegation for Staff & Machinery shop items
+    staffContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('.buy-btn');
+        if (btn) {
+            const key = btn.getAttribute('data-key');
+            if (key) {
+                buyStaff(key);
+            }
+        }
+    });
+
+    // Event delegation for Upgrades (Cut Corners) items
+    upgradesContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('.buy-btn');
+        if (btn) {
+            const key = btn.getAttribute('data-key');
+            if (key) {
+                buyUpgrade(key);
+            }
+        }
+    });
+
     // Auto-save every 5 seconds
     setInterval(saveGame, 5000);
 });
