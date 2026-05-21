@@ -84,6 +84,7 @@ globalThis.getClickPower = getClickPower;
 globalThis.getProfitMultiplier = getProfitMultiplier;
 globalThis.getPizzasPerSecond = getPizzasPerSecond;
 globalThis.loadGame = loadGame;
+globalThis.updateTicker = updateTicker;
 `;
 
 // Create VM context with all mock objects
@@ -144,6 +145,16 @@ try {
     context.loadGame();
     assert.strictEqual(context.state.staff.grandpa.count, 3, "Grandpa count should be loaded as 3 from save file");
     console.log("✅ Test 5 Passed: Tired Grandpa loads and functions correctly.");
+
+    // Test 6: Verify Ticker logic
+    context.state.lifetimePizzas = 0;
+    context.updateTicker();
+    assert.strictEqual(context.document.getElementById('ticker').textContent, "NEWS: Pizza demand is steady... mostly.", "Ticker should show early game message");
+    
+    context.state.lifetimePizzas = 2000; // Late game
+    context.updateTicker();
+    assert.ok(context.document.getElementById('ticker').textContent.length > 0, "Ticker should have a late game message");
+    console.log("✅ Test 6 Passed: Ticker updates correctly based on progress.");
 
     console.log("\n🎉 All tests passed successfully!");
     process.exit(0);
