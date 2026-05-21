@@ -12,7 +12,13 @@ const getMockElement = (id) => {
         const classes = new Set();
         mockElements[id] = {
             textContent: '',
-            style: { width: '', backgroundColor: '' },
+            style: { 
+                width: '', 
+                backgroundColor: '', 
+                opacity: '', 
+                filter: '',
+                setProperty: (key, val) => {} 
+            },
             className: '',
             classList: {
                 add(cls) { classes.add(cls); },
@@ -164,6 +170,17 @@ try {
     // Formula: 1.0 + (100 - (-500)) * 0.02 = 1.0 + 600 * 0.02 = 13.0x
     assert.strictEqual(extremeMult, 13.0, "Multiplier should scale correctly to 13.0x at -500% quality");
     console.log("✅ Test 7 Passed: Multiplier scales correctly into extreme negative quality levels.");
+
+    // Test 8: Verify SVG corruption layers update based on quality
+    context.state.quality = 100; // Fresh
+    context.updateQualityUI();
+    assert.strictEqual(context.document.getElementById('svg-good-toppings').style.opacity, "1.00", "Good toppings should be fully visible at 100% quality");
+    assert.strictEqual(context.document.getElementById('svg-mild-corruption').style.opacity, "0.00", "Mild corruption should be hidden at 100% quality");
+    
+    context.state.quality = -200; // Severe
+    context.updateQualityUI();
+    assert.ok(parseFloat(context.document.getElementById('svg-severe-corruption').style.opacity) > 0, "Severe corruption should be visible at -200% quality");
+    console.log("✅ Test 8 Passed: SVG corruption layers update correctly.");
 
     console.log("\n🎉 All tests passed successfully!");
     process.exit(0);

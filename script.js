@@ -262,6 +262,15 @@ function updateQualityUI() {
         pizzaClicker.style.filter = `saturate(${Math.max(0.1, ratio).toFixed(2)})`;
     }
 
+    // Update SVG Layer Opacities based on quality
+    const goodToppings = document.getElementById('svg-good-toppings');
+    const mildCorruption = document.getElementById('svg-mild-corruption');
+    const severeCorruption = document.getElementById('svg-severe-corruption');
+    
+    if (goodToppings) goodToppings.style.opacity = Math.max(0, Math.min(1, q / 100)).toFixed(2);
+    if (mildCorruption) mildCorruption.style.opacity = Math.max(0, Math.min(1, (100 - q) / 80)).toFixed(2);
+    if (severeCorruption) severeCorruption.style.opacity = Math.max(0, Math.min(1, (0 - q) / 400)).toFixed(2);
+
     const mult = getProfitMultiplier();
     qualEffect.textContent = `Ingredient cost savings multiplier: ${mult.toFixed(2)}x Production!`;
 }
