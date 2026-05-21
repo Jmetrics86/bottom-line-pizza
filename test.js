@@ -9,16 +9,17 @@ console.log("Setting up browser mocks for Bottom Line Pizza tests...");
 const mockElements = {};
 const getMockElement = (id) => {
     if (!mockElements[id]) {
+        const classes = new Set();
         mockElements[id] = {
             textContent: '',
             style: { width: '', backgroundColor: '' },
             className: '',
             classList: {
-                add(cls) { this.classes.add(cls); },
-                remove(cls) { this.classes.delete(cls); },
-                contains(cls) { return this.classes.has(cls); }
+                add(cls) { classes.add(cls); },
+                remove(cls) { classes.delete(cls); },
+                contains(cls) { return classes.has(cls); }
             },
-            classes: new Set(),
+            classes,
             innerHTML: '',
             querySelectorAll: () => [],
             appendChild: () => {},
@@ -59,7 +60,8 @@ const documentMock = {
         appendChild() {},
         classList: { add() {} }
     }),
-    addEventListener: () => {}
+    addEventListener: () => {},
+    readyState: 'loading'
 };
 
 const localStorageMock = {

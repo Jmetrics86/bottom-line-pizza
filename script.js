@@ -632,8 +632,8 @@ function updateTicker() {
     ticker.textContent = tickerMessages[index];
 }
 
-// Initialize
-window.addEventListener('DOMContentLoaded', () => {
+// Safe Initialization Function
+function init() {
     loadGame();
     renderAll();
     
@@ -665,4 +665,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Auto-save every 5 seconds
     setInterval(saveGame, 5000);
-});
+}
+
+// Safely execute initialization regardless of loading state (vital for fast CDNs like GitHub Pages)
+if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
