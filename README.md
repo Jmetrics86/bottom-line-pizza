@@ -6,19 +6,23 @@ Are you tired of *actual* quality? Do you dream of maximizing margins while serv
 
 ## The Game
 
-In this thrilling clicker, you aren't just making pizzas; you are *cutting corners* at the speed of light. 
+In this thrilling clicker, you aren't just making pizzas; you are *cutting corners* at the speed of light.
 
-**Features:**
-*   **Manual Pizza Production:** Tap your way to corporate success. Every click is another crust of questionable integrity.
-*   **Exploitation Hub:** Unlock staff and machinery to do the hard work for you (at a fraction of the cost, of course).
-*   **Corporate Metrics:** Monitor your "Pizza Quality" as it inevitably drops to zero. Who needs quality when you have growth?
-*   **Cost Cutting Multipliers:** Because the only thing that matters is the *Bottom Line*.
+**Key Features:**
+*   **Dynamic Pizza Visuals:** Watch as your pizza rotates, bubbles, turns neon green, and develops toxic boils as quality plummets!
+*   **The Business Ticker:** Stay informed with live corporate updates, receptionist calls, and questionable shareholder feedback.
+*   **Exploitation Hub:** Hire a full spectrum of questionable staff, from slapping hands to shady agents.
+*   **Negative Quality System:** Quality doesn't stop at zero! Plummet into negative percentages for *ever-worsening compromises* and *insane production multipliers*.
 
 ## How to Play
 
-1.  Click the pizza to start producing.
+1.  **Click the pizza** to start producing.
 2.  Once you've hit the production target, the **Exploitation Hub** unlocks.
-3.  Buy upgrades, automate, and watch your profits (and quality) plummet!
+3.  **Hire staff, purchase upgrades, and cut corners.** Watch your profits skyrocket as quality reaches cosmic levels of toxicity!
+
+## The Corruption Mechanics
+
+Quality starts at 100%. As you automate, quality drops. But fear not—the worse the pizza, the *cheaper* the ingredients, resulting in massive production multipliers! You can dive from fresh microwave-quality all the way down to **Cosmic Corruption** (-1500%+), where reality itself begins to warp around your crust.
 
 ---
 *"Where margins are thick and the crust is cardboard."*
