@@ -240,28 +240,33 @@ function updateQualityUI() {
     const pepG = Math.round(ratio * 40 + (1 - ratio) * 125);
     const pepB = Math.round(ratio * 40 + (1 - ratio) * 50);
 
-    const pizzaClicker = document.getElementById('pizza-clicker');
     const pizzaSvg = document.getElementById('pizza-svg');
-    const target = pizzaSvg || pizzaClicker;
     
-    if (target) {
-        target.style.setProperty('--crust-color', `rgb(${crustR}, ${crustG}, ${crustB})`);
-        target.style.setProperty('--crust-border', `rgb(${Math.round(crustR*0.7)}, ${Math.round(crustG*0.7)}, ${Math.round(crustB*0.7)})`);
-        target.style.setProperty('--cheese-color', `rgb(${cheeseR}, ${cheeseG}, ${cheeseB})`);
-        target.style.setProperty('--pep-color', `rgb(${pepR}, ${pepG}, ${pepB})`);
-        target.style.setProperty('--pep-border', `rgb(${Math.round(pepR*0.7)}, ${Math.round(pepG*0.7)}, ${Math.round(pepB*0.7)})`);
+    if (pizzaSvg) {
+        const svgCrust = document.getElementById('svg-crust');
+        const svgCheese = document.getElementById('svg-cheese');
         
-        // Bubbles color and opacity (more intense as quality drops further below zero)
+        if (svgCrust) {
+            svgCrust.setAttribute('fill', `rgb(${crustR}, ${crustG}, ${crustB})`);
+            svgCrust.setAttribute('stroke', `rgb(${Math.round(crustR*0.7)}, ${Math.round(crustG*0.7)}, ${Math.round(crustB*0.7)})`);
+        }
+        if (svgCheese) {
+            svgCheese.setAttribute('fill', `rgb(${cheeseR}, ${cheeseG}, ${cheeseB})`);
+        }
+        
+        // Bubbles color and opacity
         const bubbleR = Math.round(ratio * 255 + (1 - ratio) * 57); 
         const bubbleG = Math.round(ratio * 213 + (1 - ratio) * 255);
         const bubbleB = Math.round(ratio * 79 + (1 - ratio) * 20);
-        target.style.setProperty('--bubble-color', `rgb(${bubbleR}, ${bubbleG}, ${bubbleB})`);
         
-        // Opacity is 0 at 100% quality, and scales up to 1.0 as it falls below 0%
-        const bubbleOpacity = Math.max(0, Math.min(1.0, (100 - q) / 100));
-        target.style.setProperty('--bubble-opacity', bubbleOpacity.toFixed(2));
+        const bubbles = document.querySelectorAll('.pizza-bubble');
+        bubbles.forEach(b => {
+            b.style.fill = `rgb(${bubbleR}, ${bubbleG}, ${bubbleB})`;
+            b.style.setProperty('--bubble-opacity', ((100 - q) / 100).toFixed(2));
+        });
         
         // Also desaturate the pizza container on lower quality, capping minimum saturation at 0.1
+        const pizzaClicker = document.getElementById('pizza-clicker');
         if (pizzaClicker) {
             pizzaClicker.style.filter = `saturate(${Math.max(0.1, ratio).toFixed(2)})`;
         }
@@ -659,6 +664,7 @@ function init() {
     staffContainer.addEventListener('click', (e) => {
         const btn = e.target.closest('.buy-btn');
         if (btn) {
+            console.log("Staff button clicked:", btn.getAttribute('data-key'));
             const key = btn.getAttribute('data-key');
             if (key) {
                 buyStaff(key);
@@ -670,6 +676,7 @@ function init() {
     upgradesContainer.addEventListener('click', (e) => {
         const btn = e.target.closest('.buy-btn');
         if (btn) {
+            console.log("Upgrade button clicked:", btn.getAttribute('data-key'));
             const key = btn.getAttribute('data-key');
             if (key) {
                 buyUpgrade(key);

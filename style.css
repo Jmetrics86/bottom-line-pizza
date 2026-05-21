@@ -601,6 +601,9 @@ h1 {
     border-color: #3b3b54;
     color: var(--text-muted);
     min-width: 80px;
+    pointer-events: auto !important; /* Force pointer events */
+    position: relative;
+    z-index: 100; /* Force above other elements */
 }
 
 .can-buy .buy-btn {
