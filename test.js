@@ -100,6 +100,8 @@ globalThis.getProfitMultiplier = getProfitMultiplier;
 globalThis.getPizzasPerSecond = getPizzasPerSecond;
 globalThis.loadGame = loadGame;
 globalThis.updateTicker = updateTicker;
+globalThis.formatNumber = formatNumber;
+globalThis.updateQualityUI = updateQualityUI;
 `;
 
 // Create VM context with all mock objects
@@ -188,6 +190,25 @@ try {
     context.updateQualityUI();
     assert.ok(parseFloat(context.document.getElementById('svg-severe-corruption').style.opacity) > 0, "Severe corruption should be visible at -200% quality");
     console.log("✅ Test 8 Passed: SVG corruption layers update correctly.");
+
+    // Test 9: formatNumber tests
+    assert.strictEqual(context.formatNumber(500, 0), "500", "500 format 0");
+    assert.strictEqual(context.formatNumber(500, 1), "500.0", "500 format 1");
+    assert.strictEqual(context.formatNumber(123.456, 2), "123.46", "123.456 format 2");
+    assert.strictEqual(context.formatNumber(999, 0), "999", "999 format 0");
+    assert.strictEqual(context.formatNumber(1000, 1), "1.0K", "1000 format 1");
+    assert.strictEqual(context.formatNumber(1e6, 0), "1M", "1e6 format 0");
+    assert.strictEqual(context.formatNumber(1.5e6, 1), "1.5M", "1.5e6 format 1");
+    assert.strictEqual(context.formatNumber(1e9, 0), "1B", "1e9 format 0");
+    assert.strictEqual(context.formatNumber(1e12, 0), "1Tr", "1e12 format 0");
+    assert.strictEqual(context.formatNumber(1e15, 0), "1Qu", "1e15 format 0");
+    assert.strictEqual(context.formatNumber(-500, 0), "-500", "-500 format 0");
+    assert.strictEqual(context.formatNumber(-1.5e6, 1), "-1.5M", "-1.5e6 format 1");
+    
+    // Test large numbers beyond limits and precision edge cases
+    assert.strictEqual(context.formatNumber(1e306, 2), "1.00e+306", "1e306 format 2 (scientific fallback)");
+    assert.strictEqual(context.formatNumber(999.99, 1), "1000.0", "999.99 format 1 (no unit change if < 1000 after truncation logic depending on impl, adjust as needed)");
+    console.log("✅ Test 9 Passed: formatNumber logic works correctly.");
 
     console.log("\n🎉 All tests passed successfully!");
     process.exit(0);

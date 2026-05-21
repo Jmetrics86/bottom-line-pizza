@@ -134,6 +134,42 @@ function playErrorSound(): void {
 }
 
 // Math Utilities
+const UNIT_NAMES = [
+    "", "K", "M", "B", "Tr", "Qu", "Qi", "Sx", "Sp", "Oc", "No", "De", 
+    "Ud", "Dd", "Td", "Qd", "Qid", "Sxd", "Spd", "Ocd", "Nod", "Vg",
+    "Uvg", "Dvg", "Tvg", "Qvg", "Qivg", "Sxvg", "Spvg", "Ocvg", "Novg", "Tg",
+    "Utg", "Dtg", "Ttg", "Qtg", "Qitg", "Sxtg", "Sptg", "Octg", "Notg", "Qag",
+    "Uqag", "Dqag", "Tqag", "Qqag", "Qiqag", "Sxqag", "Spqag", "Ocqag", "Noqag", "Qig",
+    "Uqig", "Dqig", "Tqig", "Qqig", "Qiqig", "Sxqig", "Spqig", "Ocqig", "Noqig", "Sxg",
+    "Usxg", "Dsxg", "Tsxg", "Qsxg", "Qisxg", "Sxsxg", "Spsxg", "Ocsxg", "Nosxg", "Spg",
+    "Uspg", "Dspg", "Tspg", "Qspg", "Qispg", "Sxspg", "Spspg", "Ocspg", "Nospg", "Ocg",
+    "Uocg", "Docg", "Tocg", "Qocg", "Qiocg", "Sxocg", "Spocg", "Ococg", "Noocg", "Nog",
+    "Unog", "Dnog", "Tnog", "Qnog", "Qinog", "Sxnog", "Spnog", "Ocnog", "Nonog", "Ce"
+];
+
+function formatNumber(value: number, precision: number = 0): string {
+    if (isNaN(value) || !isFinite(value)) return "0";
+    if (value < 0) return "-" + formatNumber(-value, precision);
+    if (value < 1000) return value.toFixed(precision);
+    
+    let i = Math.floor(Math.log10(value) / 3);
+    
+    if (i >= UNIT_NAMES.length) {
+        return value.toExponential(precision);
+    }
+    
+    let val = value / Math.pow(1000, i);
+    let strVal = val.toFixed(precision);
+    
+    if (parseFloat(strVal) >= 1000 && i < UNIT_NAMES.length - 1) {
+        val /= 1000;
+        i++;
+        strVal = val.toFixed(precision);
+    }
+    
+    return strVal + UNIT_NAMES[i];
+}
+
 function getProfitMultiplier(): number {
     return 1.0 + (100 - state.quality) * 0.02;
 }
@@ -324,10 +360,10 @@ const muteBtn = document.getElementById('mute-btn');
 const resetBtn = document.getElementById('reset-btn');
 
 function renderAll(): void {
-    if (pizzaCountDisplay) pizzaCountDisplay.textContent = Math.floor(state.pizzas).toLocaleString();
-    if (ppsDisplay) ppsDisplay.textContent = `${getPizzasPerSecond().toFixed(1)} per second`;
-    if (clickPowerDisplay) clickPowerDisplay.textContent = `${getClickPower().toFixed(1)} Pizzas`;
-    if (lifetimePizzasDisplay) lifetimePizzasDisplay.textContent = Math.floor(state.lifetimePizzas).toLocaleString();
+    if (pizzaCountDisplay) pizzaCountDisplay.textContent = formatNumber(Math.floor(state.pizzas), 0);
+    if (ppsDisplay) ppsDisplay.textContent = `${formatNumber(getPizzasPerSecond(), 1)} per second`;
+    if (clickPowerDisplay) clickPowerDisplay.textContent = `${formatNumber(getClickPower(), 1)} Pizzas`;
+    if (lifetimePizzasDisplay) lifetimePizzasDisplay.textContent = formatNumber(Math.floor(state.lifetimePizzas), 0);
     if (costCutMultDisplay) costCutMultDisplay.textContent = `${getProfitMultiplier().toFixed(2)}x`;
 
     if (shopLock) {
@@ -402,8 +438,8 @@ function renderStaff(): void {
                         <span class="item-count">${d.count}</span>
                     </div>
                     <div class="item-desc">${item.desc}</div>
-                    <div class="item-pps" style="color:var(--toxic-green);">+${(d.pps * getProfitMultiplier()).toFixed(1)} pps each</div>
-                    <div class="item-cost-row">Cost: ${currentCost.toLocaleString()} pizzas</div>
+                    <div class="item-pps" style="color:var(--toxic-green);">+${formatNumber(d.pps * getProfitMultiplier(), 1)} pps each</div>
+                    <div class="item-cost-row">Cost: ${formatNumber(currentCost, 0)} pizzas</div>
                 </div>
                 <button class="buy-btn" data-key="${item.key}">${item.btnText}</button>
             `;
@@ -423,9 +459,9 @@ function renderStaff(): void {
         const costEl = itemDiv.querySelector('.item-cost-row');
         const btn = itemDiv.querySelector('.buy-btn') as HTMLButtonElement | null;
         
-        if (countEl) countEl.textContent = d.count.toString();
-        if (ppsEl) ppsEl.textContent = `+${(d.pps * getProfitMultiplier()).toFixed(1)} pps each`;
-        if (costEl) costEl.textContent = `Cost: ${currentCost.toLocaleString()} pizzas`;
+        if (countEl) countEl.textContent = formatNumber(d.count, 0);
+        if (ppsEl) ppsEl.textContent = `+${formatNumber(d.pps * getProfitMultiplier(), 1)} pps each`;
+        if (costEl) costEl.textContent = `Cost: ${formatNumber(currentCost, 0)} pizzas`;
         if (btn) btn.disabled = !canBuy;
     });
 }
@@ -464,7 +500,7 @@ function renderUpgrades(): void {
                     </div>
                     <div class="item-desc">${upg.desc}</div>
                     <div class="item-desc" style="color:var(--accent-red);">Reduces Quality: ${Math.abs(d.qualityMod)}%</div>
-                    <div class="item-cost-row">Cost: ${d.cost.toLocaleString()} pizzas</div>
+                    <div class="item-cost-row">Cost: ${formatNumber(d.cost, 0)} pizzas</div>
                 </div>
                 <button class="buy-btn" data-key="${upg.key}">${upg.btnText}</button>
             `;
