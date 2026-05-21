@@ -1,6 +1,17 @@
-// Bottom Line Pizza Clicker - Core Game Logic
-
-// Game State
+"use strict";
+// Bottom Line Pizza Clicker - Core Game Logic (TypeScript Version)
+// Diagnostic Error Overlay
+window.onerror = function (msg, url, line, col, error) {
+    const errDiv = document.getElementById('error-console');
+    if (errDiv) {
+        errDiv.innerHTML = `<div style="color: #ff3c00; background: #1a1a24; padding: 8px; border: 2px solid #ff3c00; margin-bottom: 5px; border-radius: 4px; box-shadow: 4px 4px 0px rgba(0,0,0,0.5);">
+            <strong>TypeError:</strong> ${msg}<br>
+            <span style="color: #88889c; font-size: 0.85em;">Line ${line}, Col ${col}</span><br>
+            ${error && error.stack ? `<pre style="margin-top: 5px; font-size: 0.8em; overflow-x: auto; color: #ffd000;">${error.stack}</pre>` : ''}
+        </div>` + errDiv.innerHTML;
+    }
+};
+// Game State with explicit types
 let state = {
     pizzas: 0,
     lifetimePizzas: 0,
@@ -23,55 +34,53 @@ let state = {
         glowLamps: { bought: false, cost: 50000, clickMult: 2.0, ppsMult: 3.0, qualityMod: -30 }
     }
 };
-
 // Web Audio API Sound Synthesizer
 let audioCtx = null;
-
 function initAudio() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
 }
-
 function playSound(freq, type, duration) {
-    if (state.muted) return;
+    if (state.muted)
+        return;
     try {
         initAudio();
+        if (!audioCtx)
+            return;
         if (audioCtx.state === 'suspended') {
             audioCtx.resume();
         }
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        
         osc.type = type;
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        
         gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-        
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        
         osc.start();
         osc.stop(audioCtx.currentTime + duration);
-    } catch (e) {
+    }
+    catch (e) {
         console.warn("Audio Context error:", e);
     }
 }
-
 function playClickSound() {
-    // High-pitched retro pop
     playSound(400 + Math.random() * 200, 'square', 0.08);
 }
-
 function playBuySound() {
-    // Quick ascending arcade chord
-    if (state.muted) return;
+    if (state.muted)
+        return;
     try {
         initAudio();
+        if (!audioCtx)
+            return;
         const now = audioCtx.currentTime;
         [261.63, 329.63, 392.00, 523.25].forEach((freq, idx) => {
             setTimeout(() => {
+                if (!audioCtx)
+                    return;
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'triangle';
@@ -84,52 +93,50 @@ function playBuySound() {
                 osc.stop(audioCtx.currentTime + 0.15);
             }, idx * 60);
         });
-    } catch (e) {}
+    }
+    catch (e) { }
 }
-
 function playErrorSound() {
-    // Low buzzing error tone
     playSound(120, 'sawtooth', 0.25);
 }
-
 // Math Utilities
 function getProfitMultiplier() {
-    // Decreasing quality makes ingredients cheaper, which multiplies production!
-    return 1.0 + (100 - state.quality) * 0.02; // max +200% (3.0x multiplier) at 0% quality
+    return 1.0 + (100 - state.quality) * 0.02;
 }
-
 function getClickPower() {
     let power = state.clickPowerBase;
-    if (state.upgrades.expiredDough.bought) power *= state.upgrades.expiredDough.clickMult;
-    if (state.upgrades.sawdust.bought) power *= state.upgrades.sawdust.clickMult;
-    if (state.upgrades.glowLamps.bought) power *= state.upgrades.glowLamps.clickMult;
+    if (state.upgrades.expiredDough.bought)
+        power *= state.upgrades.expiredDough.clickMult;
+    if (state.upgrades.sawdust.bought)
+        power *= state.upgrades.sawdust.clickMult;
+    if (state.upgrades.glowLamps.bought)
+        power *= state.upgrades.glowLamps.clickMult;
     return power * getProfitMultiplier();
 }
-
 function getBasePps() {
     let base = 0;
-    base += state.staff.elbowGrease.count * state.staff.elbowGrease.pps;
-    base += state.staff.grandpa.count * state.staff.grandpa.pps;
-    base += state.staff.press.count * state.staff.press.pps;
-    base += state.staff.mixer.count * state.staff.mixer.pps;
-    base += state.staff.shredder.count * state.staff.shredder.pps;
-    base += state.staff.inspector.count * state.staff.inspector.pps;
+    Object.keys(state.staff).forEach(key => {
+        const item = state.staff[key];
+        base += item.count * item.pps;
+    });
     return base;
 }
-
 function getPizzasPerSecond() {
     let pps = getBasePps();
-    if (state.upgrades.pepperoni.bought) pps *= state.upgrades.pepperoni.ppsMult;
-    if (state.upgrades.dilutedPaste.bought) pps *= state.upgrades.dilutedPaste.ppsMult;
-    if (state.upgrades.glowLamps.bought) pps *= state.upgrades.glowLamps.ppsMult;
+    if (state.upgrades.pepperoni.bought)
+        pps *= state.upgrades.pepperoni.ppsMult;
+    if (state.upgrades.dilutedPaste.bought)
+        pps *= state.upgrades.dilutedPaste.ppsMult;
+    if (state.upgrades.glowLamps.bought)
+        pps *= state.upgrades.glowLamps.ppsMult;
     return pps * getProfitMultiplier();
 }
-
 function getStaffCost(itemKey) {
     const item = state.staff[itemKey];
+    if (!item)
+        return 0;
     return Math.floor(item.baseCost * Math.pow(1.15, item.count));
 }
-
 // Quality Level Descriptions & styling with negative progression support
 function updateQualityUI() {
     const q = state.quality;
@@ -139,153 +146,143 @@ function updateQualityUI() {
     const qualEffect = document.getElementById('quality-effect');
     const moldSpots = document.getElementById('mold-spots');
     const pizzaToppings = document.getElementById('pizza-toppings');
-
-    qualText.textContent = `${q.toFixed(1)}%`;
-    
-    // Clear dynamic toppings and mold spots, rerender based on quality/upgrades
-    moldSpots.innerHTML = '';
-    
-    // Adjust colors and texts based on current quality tiers (including negative tiers)
-    qualText.className = '';
-    
+    if (qualText)
+        qualText.textContent = `${q.toFixed(1)}%`;
+    if (moldSpots)
+        moldSpots.innerHTML = '';
+    if (qualText)
+        qualText.className = '';
     let statusText = "";
     let barColor = "#4caf50";
     let barWidth = "100%";
-    
     if (q > 75) {
-        qualText.classList.add('quality-good');
+        if (qualText)
+            qualText.classList.add('quality-good');
         barColor = "#4caf50";
         statusText = "Freshly made standard microwave-level pizza.";
         barWidth = `${Math.min(100, q)}%`;
-    } else if (q > 50) {
-        qualText.classList.add('quality-bad');
+    }
+    else if (q > 50) {
+        if (qualText)
+            qualText.classList.add('quality-bad');
         barColor = "#ffeb3b";
         statusText = "Cardboard crust substituted. Grease puddles forming.";
         barWidth = `${q}%`;
-    } else if (q > 25) {
-        qualText.classList.add('quality-awful');
+    }
+    else if (q > 25) {
+        if (qualText)
+            qualText.classList.add('quality-awful');
         barColor = "#ff9800";
         statusText = "Cheapest synthetic cheese used. Smells like hot plastic.";
         barWidth = `${q}%`;
-        // Add sawdust particles on the pizza visual!
-        if (state.upgrades.sawdust.bought) {
+        if (state.upgrades.sawdust.bought && pizzaToppings) {
             pizzaToppings.innerHTML += '<div class="sawdust" style="top:30px; left:60px;"></div>';
             pizzaToppings.innerHTML += '<div class="sawdust" style="top:110px; left:40px;"></div>';
         }
-    } else if (q >= 0) {
-        qualText.classList.add('quality-toxic');
+    }
+    else if (q >= 0) {
+        if (qualText)
+            qualText.classList.add('quality-toxic');
         barColor = "#39ff14";
         statusText = "Literally biohazardous waste. Bribed inspector turned a blind eye.";
         barWidth = `${q}%`;
-        
-        // Add mold spots on pizza!
-        moldSpots.innerHTML = `
-            <div class="mold" style="top: 40px; left: 50px;"></div>
-            <div class="mold" style="top: 100px; left: 120px;"></div>
-            <div class="mold" style="top: 120px; left: 60px;"></div>
-        `;
-    } else if (q >= -100) {
-        qualText.classList.add('quality-negative-mild');
-        barColor = "#9c27b0"; // purple
+        if (moldSpots) {
+            moldSpots.innerHTML = `
+                <div class="mold" style="top: 40px; left: 50px;"></div>
+                <div class="mold" style="top: 100px; left: 120px;"></div>
+                <div class="mold" style="top: 120px; left: 60px;"></div>
+            `;
+        }
+    }
+    else if (q >= -100) {
+        if (qualText)
+            qualText.classList.add('quality-negative-mild');
+        barColor = "#9c27b0";
         statusText = "Compromise: Replaced water with industrial sludge. Crust is self-heating.";
         barWidth = `${Math.min(100, Math.abs(q))}%`;
-    } else if (q >= -300) {
-        qualText.classList.add('quality-negative-medium');
-        barColor = "#e91e63"; // deep pink
+    }
+    else if (q >= -300) {
+        if (qualText)
+            qualText.classList.add('quality-negative-medium');
+        barColor = "#e91e63";
         statusText = "Compromise: Pizza has developed a primitive central nervous system. It is whimpering.";
         barWidth = `${Math.min(100, Math.abs(q) / 3)}%`;
-    } else if (q >= -700) {
-        qualText.classList.add('quality-negative-severe');
-        barColor = "#ff1744"; // glowing red
+    }
+    else if (q >= -700) {
+        if (qualText)
+            qualText.classList.add('quality-negative-severe');
+        barColor = "#ff1744";
         statusText = "Compromise: Classified as a Class-IV biological weapon. Banned in 194 sovereign nations.";
         barWidth = `${Math.min(100, Math.abs(q) / 7)}%`;
-    } else if (q >= -1500) {
-        qualText.classList.add('quality-negative-insane');
-        barColor = "#000000"; // pitch black
+    }
+    else if (q >= -1500) {
+        if (qualText)
+            qualText.classList.add('quality-negative-insane');
+        barColor = "#000000";
         statusText = "Compromise: Infused with weaponized plutonium. Spontaneously generates mini black holes.";
         barWidth = `${Math.min(100, Math.abs(q) / 15)}%`;
-    } else {
-        qualText.classList.add('quality-negative-cosmic');
-        barColor = "#3f51b5"; // space indigo
+    }
+    else {
+        if (qualText)
+            qualText.classList.add('quality-negative-cosmic');
+        barColor = "#3f51b5";
         statusText = "Compromise: Reality is collapsing. The crust is made of dark matter and corporate greed.";
         barWidth = "100%";
     }
-
-    qualBar.style.backgroundColor = barColor;
-    qualBar.style.width = barWidth;
-    qualStatus.textContent = statusText;
-
-    // Interpolate colors based on quality (0 to 100, supporting negative values!)
-    const ratio = Math.max(0, Math.min(100, q)) / 100; // 1 = fresh, 0 = toxic
-    
-    // Crust color: ratio * fresh + (1 - ratio) * toxic
-    // Fresh crust: #d84315 (R:216, G:67, B:21)
-    // Toxic crust: #4d5d30 (R:77, G:93, B:48)
+    if (qualBar) {
+        qualBar.style.backgroundColor = barColor;
+        qualBar.style.width = barWidth;
+    }
+    if (qualStatus)
+        qualStatus.textContent = statusText;
+    // Interpolate colors based on quality
+    const ratio = Math.max(0, Math.min(100, q)) / 100;
     const crustR = Math.round(ratio * 216 + (1 - ratio) * 77);
     const crustG = Math.round(ratio * 67 + (1 - ratio) * 93);
     const crustB = Math.round(ratio * 21 + (1 - ratio) * 48);
-    
-    // Cheese color:
-    // Fresh cheese: #ffd54f (R:255, G:213, B:79)
-    // Toxic cheese: #39ff14 (R:57, G:255, B:20) (neon toxic green) or green-grey
-    // Let's make it a sickly desaturated green-grey #7a8f65 (R:122, G:143, B:101)
     const cheeseR = Math.round(ratio * 255 + (1 - ratio) * 122);
     const cheeseG = Math.round(ratio * 213 + (1 - ratio) * 143);
     const cheeseB = Math.round(ratio * 79 + (1 - ratio) * 101);
-
-    // Pep color (Pepperoni):
-    // Fresh pep: #c62828 (R:198, G:40, B:40)
-    // Toxic pep: #2e7d32 (R:46, G:125, B:50) (sickly dark green mold spots!)
-    const pepR = Math.round(ratio * 198 + (1 - ratio) * 46);
-    const pepG = Math.round(ratio * 40 + (1 - ratio) * 125);
-    const pepB = Math.round(ratio * 40 + (1 - ratio) * 50);
-
     const pizzaSvg = document.getElementById('pizza-svg');
-    
+    const pizzaClicker = document.getElementById('pizza-clicker');
     if (pizzaSvg) {
         const svgCrust = document.getElementById('svg-crust');
         const svgCheese = document.getElementById('svg-cheese');
-        
         if (svgCrust) {
             svgCrust.setAttribute('fill', `rgb(${crustR}, ${crustG}, ${crustB})`);
-            svgCrust.setAttribute('stroke', `rgb(${Math.round(crustR*0.7)}, ${Math.round(crustG*0.7)}, ${Math.round(crustB*0.7)})`);
+            svgCrust.setAttribute('stroke', `rgb(${Math.round(crustR * 0.7)}, ${Math.round(crustG * 0.7)}, ${Math.round(crustB * 0.7)})`);
         }
         if (svgCheese) {
             svgCheese.setAttribute('fill', `rgb(${cheeseR}, ${cheeseG}, ${cheeseB})`);
         }
-        
-        // Bubbles color and opacity
-        const bubbleR = Math.round(ratio * 255 + (1 - ratio) * 57); 
+        const bubbleR = Math.round(ratio * 255 + (1 - ratio) * 57);
         const bubbleG = Math.round(ratio * 213 + (1 - ratio) * 255);
         const bubbleB = Math.round(ratio * 79 + (1 - ratio) * 20);
-        
         const bubbles = document.querySelectorAll('.pizza-bubble');
         bubbles.forEach(b => {
-            b.style.fill = `rgb(${bubbleR}, ${bubbleG}, ${bubbleB})`;
-            b.style.setProperty('--bubble-opacity', ((100 - q) / 100).toFixed(2));
+            const el = b;
+            el.style.fill = `rgb(${bubbleR}, ${bubbleG}, ${bubbleB})`;
+            el.style.setProperty('--bubble-opacity', ((100 - q) / 100).toFixed(2));
         });
-        
-        // Also desaturate the pizza container on lower quality, capping minimum saturation at 0.1
-        const pizzaClicker = document.getElementById('pizza-clicker');
         if (pizzaClicker) {
             pizzaClicker.style.filter = `saturate(${Math.max(0.1, ratio).toFixed(2)})`;
         }
     }
-
     // Update SVG Layer Opacities based on quality
     const goodToppings = document.getElementById('svg-good-toppings');
     const mildCorruption = document.getElementById('svg-mild-corruption');
     const severeCorruption = document.getElementById('svg-severe-corruption');
-    
-    if (goodToppings) goodToppings.style.opacity = Math.max(0, Math.min(1, q / 100)).toFixed(2);
-    if (mildCorruption) mildCorruption.style.opacity = Math.max(0, Math.min(1, (100 - q) / 80)).toFixed(2);
-    if (severeCorruption) severeCorruption.style.opacity = Math.max(0, Math.min(1, (0 - q) / 400)).toFixed(2);
-
+    if (goodToppings)
+        goodToppings.style.opacity = Math.max(0, Math.min(1, q / 100)).toFixed(2);
+    if (mildCorruption)
+        mildCorruption.style.opacity = Math.max(0, Math.min(1, (100 - q) / 80)).toFixed(2);
+    if (severeCorruption)
+        severeCorruption.style.opacity = Math.max(0, Math.min(1, (0 - q) / 400)).toFixed(2);
     const mult = getProfitMultiplier();
-    qualEffect.textContent = `Ingredient cost savings multiplier: ${mult.toFixed(2)}x Production!`;
+    if (qualEffect)
+        qualEffect.textContent = `Ingredient cost savings multiplier: ${mult.toFixed(2)}x Production!`;
 }
-
-// UI Rendering & Interaction
+// DOM elements
 const pizzaButton = document.getElementById('pizza-clicker');
 const pizzaCountDisplay = document.getElementById('pizza-count');
 const ppsDisplay = document.getElementById('pps-display');
@@ -299,60 +296,56 @@ const staffContainer = document.getElementById('staff-container');
 const upgradesContainer = document.getElementById('upgrades-container');
 const muteBtn = document.getElementById('mute-btn');
 const resetBtn = document.getElementById('reset-btn');
-
 function renderAll() {
-    pizzaCountDisplay.textContent = Math.floor(state.pizzas).toLocaleString();
-    ppsDisplay.textContent = `${getPizzasPerSecond().toFixed(1)} per second`;
-    clickPowerDisplay.textContent = `${getClickPower().toFixed(1)} Pizzas`;
-    lifetimePizzasDisplay.textContent = Math.floor(state.lifetimePizzas).toLocaleString();
-    costCutMultDisplay.textContent = `${getProfitMultiplier().toFixed(2)}x`;
-
-    // Unlock staffing overlay after 10 lifetime or current pizzas
-    if (state.lifetimePizzas >= 10) {
-        shopLock.classList.add('hidden');
-    } else {
-        shopLock.classList.remove('hidden');
+    if (pizzaCountDisplay)
+        pizzaCountDisplay.textContent = Math.floor(state.pizzas).toLocaleString();
+    if (ppsDisplay)
+        ppsDisplay.textContent = `${getPizzasPerSecond().toFixed(1)} per second`;
+    if (clickPowerDisplay)
+        clickPowerDisplay.textContent = `${getClickPower().toFixed(1)} Pizzas`;
+    if (lifetimePizzasDisplay)
+        lifetimePizzasDisplay.textContent = Math.floor(state.lifetimePizzas).toLocaleString();
+    if (costCutMultDisplay)
+        costCutMultDisplay.textContent = `${getProfitMultiplier().toFixed(2)}x`;
+    if (shopLock) {
+        if (state.lifetimePizzas >= 10) {
+            shopLock.classList.add('hidden');
+            shopLock.style.pointerEvents = 'none';
+        }
+        else {
+            shopLock.classList.remove('hidden');
+            shopLock.style.pointerEvents = 'auto';
+        }
     }
-
-    // Render Staff Items
     renderStaff();
-    
-    // Render Upgrades
     renderUpgrades();
-
-    // Quality Indicators
     updateQualityUI();
-
-    // Render Orbiting Hands
     updateOrbitingHands();
 }
-
 function updateOrbitingHands() {
     const container = document.getElementById('orbiting-hands-container');
-    if (!container) return;
-    
+    if (!container)
+        return;
     const count = state.staff.elbowGrease ? state.staff.elbowGrease.count : 0;
     const currentHands = container.querySelectorAll('.hand-container').length;
-    
-    if (count === currentHands) return;
-    
+    if (count === currentHands)
+        return;
     container.innerHTML = '';
     for (let i = 0; i < count; i++) {
         const angle = (360 / count) * i;
         const handContainer = document.createElement('div');
         handContainer.className = 'hand-container';
         handContainer.style.setProperty('--angle', `${angle}deg`);
-        
         const hand = document.createElement('div');
         hand.className = 'orbiting-hand';
         hand.textContent = '👇';
-        
         handContainer.appendChild(hand);
         container.appendChild(handContainer);
     }
 }
-
 function renderStaff() {
+    if (!staffContainer)
+        return;
     const staffData = [
         { key: 'elbowGrease', name: 'Elbow Grease', icon: '🖐️', desc: 'Cheap manual effort. Orbiting hands tap for you.', btnText: 'SLAP!' },
         { key: 'grandpa', name: 'Tired Grandpa', icon: '👴', desc: 'Cheap, forced out of retirement. Expired yeast.', btnText: 'DRAFT!' },
@@ -361,17 +354,17 @@ function renderStaff() {
         { key: 'shredder', name: 'Plastic Grater', icon: '⚙️', desc: 'Shreds cheap petroleum cheese blends.', btnText: 'SHRED!' },
         { key: 'inspector', name: 'Shady Agent', icon: '🕶️', desc: 'Bribed inspector legalizing toxicity.', btnText: 'BRIBE!' }
     ];
-
     staffData.forEach(item => {
         const d = state.staff[item.key];
+        if (!d)
+            return;
         const currentCost = getStaffCost(item.key);
         const canBuy = state.pizzas >= currentCost;
-        
         let itemDiv = staffContainer.querySelector(`[data-key="${item.key}"]`);
-        
         if (!itemDiv) {
             itemDiv = document.createElement('div');
             itemDiv.setAttribute('data-key', item.key);
+            itemDiv.className = 'shop-item';
             itemDiv.innerHTML = `
                 <div class="item-info">
                     <div class="item-title-row">
@@ -385,18 +378,30 @@ function renderStaff() {
                 </div>
                 <button class="buy-btn" data-key="${item.key}">${item.btnText}</button>
             `;
+            const btn = itemDiv.querySelector('.buy-btn');
+            if (btn) {
+                btn.addEventListener('click', () => buyStaff(item.key));
+            }
             staffContainer.appendChild(itemDiv);
         }
-
-        // Update existing element
         itemDiv.className = `shop-item ${canBuy ? 'can-buy' : ''}`;
-        itemDiv.querySelector('.item-count').textContent = d.count;
-        itemDiv.querySelector('.item-pps').textContent = `+${(d.pps * getProfitMultiplier()).toFixed(1)} pps each`;
-        itemDiv.querySelector('.item-cost-row').textContent = `Cost: ${currentCost.toLocaleString()} pizzas`;
+        const countEl = itemDiv.querySelector('.item-count');
+        const ppsEl = itemDiv.querySelector('.item-pps');
+        const costEl = itemDiv.querySelector('.item-cost-row');
+        const btn = itemDiv.querySelector('.buy-btn');
+        if (countEl)
+            countEl.textContent = d.count.toString();
+        if (ppsEl)
+            ppsEl.textContent = `+${(d.pps * getProfitMultiplier()).toFixed(1)} pps each`;
+        if (costEl)
+            costEl.textContent = `Cost: ${currentCost.toLocaleString()} pizzas`;
+        if (btn)
+            btn.disabled = !canBuy;
     });
 }
-
 function renderUpgrades() {
+    if (!upgradesContainer)
+        return;
     const upgradeData = [
         { key: 'expiredDough', name: 'Sour Yeast', icon: '🍞', desc: 'Smells funny, but doubles click power.', btnText: 'EXPIRE!' },
         { key: 'sawdust', name: 'Wood Flour', icon: '🪵', desc: 'Flour cut with 20% premium sawdust. Doubles click.', btnText: 'SAWDUST!' },
@@ -404,21 +409,21 @@ function renderUpgrades() {
         { key: 'dilutedPaste', name: 'Watered Sauce', icon: '🥫', desc: 'Sauce is mostly food color. Doubles pps.', btnText: 'DILUTE!' },
         { key: 'glowLamps', name: 'Gamma Lamps', icon: '☢️', desc: 'Radiation heats instantly. 3x all production.', btnText: 'IRRADIATE!' }
     ];
-
     upgradeData.forEach(upg => {
         const d = state.upgrades[upg.key];
+        if (!d)
+            return;
         let upgDiv = upgradesContainer.querySelector(`[data-key="${upg.key}"]`);
-        
         if (d.bought) {
-            if (upgDiv) upgDiv.remove();
+            if (upgDiv)
+                upgDiv.remove();
             return;
         }
-        
         const canBuy = state.pizzas >= d.cost;
-        
         if (!upgDiv) {
             upgDiv = document.createElement('div');
             upgDiv.setAttribute('data-key', upg.key);
+            upgDiv.className = 'shop-item';
             upgDiv.innerHTML = `
                 <div class="item-info">
                     <div class="item-title-row">
@@ -431,197 +436,187 @@ function renderUpgrades() {
                 </div>
                 <button class="buy-btn" data-key="${upg.key}">${upg.btnText}</button>
             `;
+            const btn = upgDiv.querySelector('.buy-btn');
+            if (btn) {
+                btn.addEventListener('click', () => buyUpgrade(upg.key));
+            }
             upgradesContainer.appendChild(upgDiv);
         }
-
-        // Update existing element
         upgDiv.className = `shop-item ${canBuy ? 'can-buy' : ''}`;
+        const btn = upgDiv.querySelector('.buy-btn');
+        if (btn)
+            btn.disabled = !canBuy;
     });
-
     if (upgradesContainer.innerHTML === '' || upgradesContainer.children.length === 0) {
         upgradesContainer.innerHTML = '<div class="tap-hint" style="padding: 20px;">All corners cut! Perfect exploitation!</div>';
     }
 }
-
 // Buying actions
-window.buyStaff = function(itemKey) {
+function buyStaff(itemKey) {
     const cost = getStaffCost(itemKey);
     if (state.pizzas >= cost) {
         state.pizzas -= cost;
-        state.staff[itemKey].count++;
+        const item = state.staff[itemKey];
+        if (item)
+            item.count++;
         playBuySound();
         renderAll();
         saveGame();
-    } else {
+    }
+    else {
         playErrorSound();
     }
-};
-
-window.buyUpgrade = function(upgKey) {
+}
+function buyUpgrade(upgKey) {
     const upg = state.upgrades[upgKey];
-    if (state.pizzas >= upg.cost && !upg.bought) {
+    if (upg && state.pizzas >= upg.cost && !upg.bought) {
         state.pizzas -= upg.cost;
         upg.bought = true;
-        // Apply quality penalty (can go negative!)
         state.quality += upg.qualityMod;
         playBuySound();
         renderAll();
         saveGame();
-    } else {
+    }
+    else {
         playErrorSound();
     }
-};
-
+}
 // Pizza Click Action
-pizzaButton.addEventListener('click', (e) => {
-    const power = getClickPower();
-    state.pizzas += power;
-    state.lifetimePizzas += power;
-    
-    // Clicks slowly degrade quality (0.04% per click, can go negative!)
-    state.quality -= 0.04;
-    
-    playClickSound();
-    createParticle(e, power);
-    renderAll();
-});
-
+if (pizzaButton) {
+    pizzaButton.addEventListener('click', (e) => {
+        const power = getClickPower();
+        state.pizzas += power;
+        state.lifetimePizzas += power;
+        state.quality -= 0.04;
+        playClickSound();
+        createParticle(e, power);
+        renderAll();
+    });
+}
 // Particle Effect
 function createParticle(e, amount) {
     const container = document.getElementById('click-particles-container');
+    if (!container || !pizzaButton)
+        return;
     const particle = document.createElement('div');
-    
-    // Determine random angle/distance to float
     const randomX = (Math.random() - 0.5) * 160;
     const randomY = -120 - Math.random() * 80;
-    
     particle.style.setProperty('--x', `${randomX}px`);
     particle.style.setProperty('--y', `${randomY}px`);
-    
-    // Position near the click or center of the button on mobile/touch
     let clientX = e.clientX;
     let clientY = e.clientY;
-    
     if (!clientX && e.changedTouches) {
         clientX = e.changedTouches[0].clientX;
         clientY = e.changedTouches[0].clientY;
     }
-    
     if (!clientX) {
         const rect = pizzaButton.getBoundingClientRect();
         clientX = rect.left + rect.width / 2;
         clientY = rect.top + rect.height / 2;
     }
-    
     particle.style.left = `${clientX}px`;
     particle.style.top = `${clientY}px`;
-    
-    // Custom funny words at very low quality
     if (state.quality < 25 && Math.random() < 0.3) {
         const funWords = ["Sawdust!", "Mold!", "Tainted!", "Expired!", "Profits!"];
         particle.textContent = funWords[Math.floor(Math.random() * funWords.length)];
         particle.classList.add('particle-trash');
-    } else {
+    }
+    else {
         particle.textContent = `+${amount.toFixed(0)}`;
     }
-    
     particle.className = 'particle';
     container.appendChild(particle);
-    
     setTimeout(() => {
         particle.remove();
     }, 800);
 }
-
 // Tabs switching
-tabStaff.addEventListener('click', () => {
-    tabStaff.classList.add('active');
-    tabUpgrades.classList.remove('active');
-    staffContainer.classList.remove('hidden');
-    upgradesContainer.classList.add('hidden');
-});
-
-tabUpgrades.addEventListener('click', () => {
-    tabStaff.classList.remove('active');
-    tabUpgrades.classList.add('active');
-    staffContainer.classList.add('hidden');
-    upgradesContainer.classList.remove('hidden');
-});
-
-// Game Loop (Updates PPS and quality over time)
+if (tabStaff) {
+    tabStaff.addEventListener('click', () => {
+        if (tabStaff)
+            tabStaff.classList.add('active');
+        if (tabUpgrades)
+            tabUpgrades.classList.remove('active');
+        if (staffContainer)
+            staffContainer.classList.remove('hidden');
+        if (upgradesContainer)
+            upgradesContainer.classList.add('hidden');
+    });
+}
+if (tabUpgrades) {
+    tabUpgrades.addEventListener('click', () => {
+        if (tabStaff)
+            tabStaff.classList.remove('active');
+        if (tabUpgrades)
+            tabUpgrades.classList.add('active');
+        if (staffContainer)
+            staffContainer.classList.add('hidden');
+        if (upgradesContainer)
+            upgradesContainer.classList.remove('hidden');
+    });
+}
+// Game Loop
 let lastTick = Date.now();
 setInterval(() => {
     const now = Date.now();
     const dt = (now - lastTick) / 1000;
     lastTick = now;
-
     const pps = getPizzasPerSecond();
     if (pps > 0) {
         state.pizzas += pps * dt;
         state.lifetimePizzas += pps * dt;
-        
-        // Automated factories slowly decrease quality over time (0.003% * PPS per second, can go negative!)
         state.quality -= 0.003 * pps * dt;
     }
-    
     renderAll();
 }, 100);
-
-// Mute toggle
-muteBtn.addEventListener('click', () => {
-    state.muted = !state.muted;
-    muteBtn.textContent = state.muted ? "🔇 Sound Off" : "🔊 Sound On";
-    saveGame();
-});
-
-// Reset logic
-resetBtn.addEventListener('click', () => {
-    if (confirm("Reset all progress? This will reset your bottom line to standard clean conditions!")) {
-        localStorage.removeItem('bottomLinePizzaSave');
-        location.reload();
-    }
-});
-
-// Local Storage Saving
+if (muteBtn) {
+    muteBtn.addEventListener('click', () => {
+        state.muted = !state.muted;
+        muteBtn.textContent = state.muted ? "🔇 Sound Off" : "🔊 Sound On";
+        saveGame();
+    });
+}
+if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+        if (confirm("Reset all progress? This will reset your bottom line to standard clean conditions!")) {
+            localStorage.removeItem('bottomLinePizzaSave');
+            location.reload();
+        }
+    });
+}
 function saveGame() {
     localStorage.setItem('bottomLinePizzaSave', JSON.stringify(state));
 }
-
 function loadGame() {
     const saved = localStorage.getItem('bottomLinePizzaSave');
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
-            // Migrate and merge saves to prevent breaking changes if variables change
             state = { ...state, ...parsed };
-            // Ensure nested objects are correctly merged too
             if (parsed.staff) {
                 state.staff = { ...state.staff, ...parsed.staff };
             }
-            if (parsed.upgrades) state.upgrades = { ...state.upgrades, ...parsed.upgrades };
-            
-            muteBtn.textContent = state.muted ? "🔇 Sound Off" : "🔊 Sound On";
-        } catch (e) {
+            if (parsed.upgrades)
+                state.upgrades = { ...state.upgrades, ...parsed.upgrades };
+            if (muteBtn)
+                muteBtn.textContent = state.muted ? "🔇 Sound Off" : "🔊 Sound On";
+        }
+        catch (e) {
             console.warn("Could not load save game:", e);
         }
     }
 }
-
 // Ticker Logic
 const ticker = document.getElementById('ticker');
 const tickerMessages = [
-    // Early game (0-100 pizzas)
     "NEWS: Pizza demand is steady... mostly.", "RECEPTIONIST: Your mom called, asking if you're eating properly.", "PRESS: New local pizza place opens to zero fanfare.",
     "SHAREHOLDER: Can we cut costs on the pepperoni? It's too round.", "RECEPTIONIST: An employee is asking for a chair. Deny it.",
-    // Mid game (100-1000 pizzas)
     "PRESS: Health inspectors found something... green. Ignore it.", "RECEPTIONIST: Your friend called, they said the pizza tastes like plastic. Who cares?",
     "SHAREHOLDER: Profits are up 2%! Keep up the cardboard crusts.", "SOCIAL: #BottomLinePizza is trending for all the wrong reasons.",
     "RECEPTIONIST: Another call from the EPA. I told them you're in a meeting.",
-    // Late game (1000+ pizzas)
     "PRESS: Bottom Line Pizza dominates! (With 99% market share of bad pizza).", "RECEPTIONIST: Your dad called, he's proud you're a CEO, even if it's... this.",
     "SHAREHOLDER: We are officially a Fortune 500 company! Still no napkins, though.", "SOCIAL: Our new 'Synthetic Sauce' is causing minor skin irritations. It's fine.",
     "RECEPTIONIST: The lawyers are on line 2, 3, and 4. I'll put them through?",
-    // Extra
     "NEWS: Employees seen eating their own product? Scandalous.", "SHAREHOLDER: CEO bonus approved! Keep up the good work.",
     "RECEPTIONIST: It's your landlord, they're asking about the rent again.", "PRESS: Is it even food? Local experts say 'technically'.",
     "SOCIAL: Customer reported finding a gear in their pizza. That's free hardware!",
@@ -643,54 +638,24 @@ const tickerMessages = [
     "NEWS: The pizza machine is making weird noises.", "RECEPTIONIST: Your dad says he saw the news. He's... confused.",
     "SHAREHOLDER: Keep it cheap, keep it fast!", "PRESS: 'Truly a unique experience'."
 ];
-
 function updateTicker() {
-    // Pick a message based on progress
-    const progress = Math.min(1, state.lifetimePizzas / 50000);
-    const index = Math.floor(progress * (tickerMessages.length - 1));
-    ticker.textContent = tickerMessages[index];
+    if (ticker) {
+        const progress = Math.min(1, state.lifetimePizzas / 50000);
+        const index = Math.floor(progress * (tickerMessages.length - 1));
+        ticker.textContent = tickerMessages[index];
+    }
 }
-
 // Safe Initialization Function
 function init() {
     loadGame();
     renderAll();
-    
-    // Ticker update loop
     setInterval(updateTicker, 15000);
     updateTicker();
-    
-    // Event delegation for Staff & Machinery shop items
-    staffContainer.addEventListener('click', (e) => {
-        const btn = e.target.closest('.buy-btn');
-        if (btn) {
-            console.log("Staff button clicked:", btn.getAttribute('data-key'));
-            const key = btn.getAttribute('data-key');
-            if (key) {
-                buyStaff(key);
-            }
-        }
-    });
-
-    // Event delegation for Upgrades (Cut Corners) items
-    upgradesContainer.addEventListener('click', (e) => {
-        const btn = e.target.closest('.buy-btn');
-        if (btn) {
-            console.log("Upgrade button clicked:", btn.getAttribute('data-key'));
-            const key = btn.getAttribute('data-key');
-            if (key) {
-                buyUpgrade(key);
-            }
-        }
-    });
-
-    // Auto-save every 5 seconds
     setInterval(saveGame, 5000);
 }
-
-// Safely execute initialization regardless of loading state (vital for fast CDNs like GitHub Pages)
 if (document.readyState === 'loading') {
     window.addEventListener('DOMContentLoaded', init);
-} else {
+}
+else {
     init();
 }

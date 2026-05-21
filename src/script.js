@@ -1,5 +1,5 @@
+"use strict";
 // Bottom Line Pizza Clicker - Core Game Logic (TypeScript Version)
-
 // Diagnostic Error Overlay
 window.onerror = function (msg, url, line, col, error) {
     const errDiv = document.getElementById('error-console');
@@ -11,38 +11,8 @@ window.onerror = function (msg, url, line, col, error) {
         </div>` + errDiv.innerHTML;
     }
 };
-
-interface StaffItem {
-    count: number;
-    cost: number;
-    pps: number;
-    baseCost: number;
-}
-
-interface UpgradeItem {
-    bought: boolean;
-    cost: number;
-    clickMult: number;
-    ppsMult: number;
-    qualityMod: number;
-}
-
-interface GameState {
-    pizzas: number;
-    lifetimePizzas: number;
-    quality: number;
-    clickPowerBase: number;
-    muted: boolean;
-    staff: {
-        [key: string]: StaffItem;
-    };
-    upgrades: {
-        [key: string]: UpgradeItem;
-    };
-}
-
 // Game State with explicit types
-let state: GameState = {
+let state = {
     pizzas: 0,
     lifetimePizzas: 0,
     quality: 100,
@@ -64,56 +34,53 @@ let state: GameState = {
         glowLamps: { bought: false, cost: 50000, clickMult: 2.0, ppsMult: 3.0, qualityMod: -30 }
     }
 };
-
 // Web Audio API Sound Synthesizer
-let audioCtx: AudioContext | null = null;
-
-function initAudio(): void {
+let audioCtx = null;
+function initAudio() {
     if (!audioCtx) {
-        audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
 }
-
-function playSound(freq: number, type: OscillatorType, duration: number): void {
-    if (state.muted) return;
+function playSound(freq, type, duration) {
+    if (state.muted)
+        return;
     try {
         initAudio();
-        if (!audioCtx) return;
+        if (!audioCtx)
+            return;
         if (audioCtx.state === 'suspended') {
             audioCtx.resume();
         }
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        
         osc.type = type;
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        
         gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-        
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        
         osc.start();
         osc.stop(audioCtx.currentTime + duration);
-    } catch (e) {
+    }
+    catch (e) {
         console.warn("Audio Context error:", e);
     }
 }
-
-function playClickSound(): void {
+function playClickSound() {
     playSound(400 + Math.random() * 200, 'square', 0.08);
 }
-
-function playBuySound(): void {
-    if (state.muted) return;
+function playBuySound() {
+    if (state.muted)
+        return;
     try {
         initAudio();
-        if (!audioCtx) return;
+        if (!audioCtx)
+            return;
         const now = audioCtx.currentTime;
         [261.63, 329.63, 392.00, 523.25].forEach((freq, idx) => {
             setTimeout(() => {
-                if (!audioCtx) return;
+                if (!audioCtx)
+                    return;
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'triangle';
@@ -126,27 +93,27 @@ function playBuySound(): void {
                 osc.stop(audioCtx.currentTime + 0.15);
             }, idx * 60);
         });
-    } catch (e) {}
+    }
+    catch (e) { }
 }
-
-function playErrorSound(): void {
+function playErrorSound() {
     playSound(120, 'sawtooth', 0.25);
 }
-
 // Math Utilities
-function getProfitMultiplier(): number {
+function getProfitMultiplier() {
     return 1.0 + (100 - state.quality) * 0.02;
 }
-
-function getClickPower(): number {
+function getClickPower() {
     let power = state.clickPowerBase;
-    if (state.upgrades.expiredDough.bought) power *= state.upgrades.expiredDough.clickMult;
-    if (state.upgrades.sawdust.bought) power *= state.upgrades.sawdust.clickMult;
-    if (state.upgrades.glowLamps.bought) power *= state.upgrades.glowLamps.clickMult;
+    if (state.upgrades.expiredDough.bought)
+        power *= state.upgrades.expiredDough.clickMult;
+    if (state.upgrades.sawdust.bought)
+        power *= state.upgrades.sawdust.clickMult;
+    if (state.upgrades.glowLamps.bought)
+        power *= state.upgrades.glowLamps.clickMult;
     return power * getProfitMultiplier();
 }
-
-function getBasePps(): number {
+function getBasePps() {
     let base = 0;
     Object.keys(state.staff).forEach(key => {
         const item = state.staff[key];
@@ -154,23 +121,24 @@ function getBasePps(): number {
     });
     return base;
 }
-
-function getPizzasPerSecond(): number {
+function getPizzasPerSecond() {
     let pps = getBasePps();
-    if (state.upgrades.pepperoni.bought) pps *= state.upgrades.pepperoni.ppsMult;
-    if (state.upgrades.dilutedPaste.bought) pps *= state.upgrades.dilutedPaste.ppsMult;
-    if (state.upgrades.glowLamps.bought) pps *= state.upgrades.glowLamps.ppsMult;
+    if (state.upgrades.pepperoni.bought)
+        pps *= state.upgrades.pepperoni.ppsMult;
+    if (state.upgrades.dilutedPaste.bought)
+        pps *= state.upgrades.dilutedPaste.ppsMult;
+    if (state.upgrades.glowLamps.bought)
+        pps *= state.upgrades.glowLamps.ppsMult;
     return pps * getProfitMultiplier();
 }
-
-function getStaffCost(itemKey: string): number {
+function getStaffCost(itemKey) {
     const item = state.staff[itemKey];
-    if (!item) return 0;
+    if (!item)
+        return 0;
     return Math.floor(item.baseCost * Math.pow(1.15, item.count));
 }
-
 // Quality Level Descriptions & styling with negative progression support
-function updateQualityUI(): void {
+function updateQualityUI() {
     const q = state.quality;
     const qualText = document.getElementById('quality-pct');
     const qualBar = document.getElementById('quality-bar');
@@ -178,28 +146,32 @@ function updateQualityUI(): void {
     const qualEffect = document.getElementById('quality-effect');
     const moldSpots = document.getElementById('mold-spots');
     const pizzaToppings = document.getElementById('pizza-toppings');
-
-    if (qualText) qualText.textContent = `${q.toFixed(1)}%`;
-    if (moldSpots) moldSpots.innerHTML = '';
-    
-    if (qualText) qualText.className = '';
-    
+    if (qualText)
+        qualText.textContent = `${q.toFixed(1)}%`;
+    if (moldSpots)
+        moldSpots.innerHTML = '';
+    if (qualText)
+        qualText.className = '';
     let statusText = "";
     let barColor = "#4caf50";
     let barWidth = "100%";
-    
     if (q > 75) {
-        if (qualText) qualText.classList.add('quality-good');
+        if (qualText)
+            qualText.classList.add('quality-good');
         barColor = "#4caf50";
         statusText = "Freshly made standard microwave-level pizza.";
         barWidth = `${Math.min(100, q)}%`;
-    } else if (q > 50) {
-        if (qualText) qualText.classList.add('quality-bad');
+    }
+    else if (q > 50) {
+        if (qualText)
+            qualText.classList.add('quality-bad');
         barColor = "#ffeb3b";
         statusText = "Cardboard crust substituted. Grease puddles forming.";
         barWidth = `${q}%`;
-    } else if (q > 25) {
-        if (qualText) qualText.classList.add('quality-awful');
+    }
+    else if (q > 25) {
+        if (qualText)
+            qualText.classList.add('quality-awful');
         barColor = "#ff9800";
         statusText = "Cheapest synthetic cheese used. Smells like hot plastic.";
         barWidth = `${q}%`;
@@ -207,12 +179,13 @@ function updateQualityUI(): void {
             pizzaToppings.innerHTML += '<div class="sawdust" style="top:30px; left:60px;"></div>';
             pizzaToppings.innerHTML += '<div class="sawdust" style="top:110px; left:40px;"></div>';
         }
-    } else if (q >= 0) {
-        if (qualText) qualText.classList.add('quality-toxic');
+    }
+    else if (q >= 0) {
+        if (qualText)
+            qualText.classList.add('quality-toxic');
         barColor = "#39ff14";
         statusText = "Literally biohazardous waste. Bribed inspector turned a blind eye.";
         barWidth = `${q}%`;
-        
         if (moldSpots) {
             moldSpots.innerHTML = `
                 <div class="mold" style="top: 40px; left: 50px;"></div>
@@ -220,94 +193,95 @@ function updateQualityUI(): void {
                 <div class="mold" style="top: 120px; left: 60px;"></div>
             `;
         }
-    } else if (q >= -100) {
-        if (qualText) qualText.classList.add('quality-negative-mild');
+    }
+    else if (q >= -100) {
+        if (qualText)
+            qualText.classList.add('quality-negative-mild');
         barColor = "#9c27b0";
         statusText = "Compromise: Replaced water with industrial sludge. Crust is self-heating.";
         barWidth = `${Math.min(100, Math.abs(q))}%`;
-    } else if (q >= -300) {
-        if (qualText) qualText.classList.add('quality-negative-medium');
+    }
+    else if (q >= -300) {
+        if (qualText)
+            qualText.classList.add('quality-negative-medium');
         barColor = "#e91e63";
         statusText = "Compromise: Pizza has developed a primitive central nervous system. It is whimpering.";
         barWidth = `${Math.min(100, Math.abs(q) / 3)}%`;
-    } else if (q >= -700) {
-        if (qualText) qualText.classList.add('quality-negative-severe');
+    }
+    else if (q >= -700) {
+        if (qualText)
+            qualText.classList.add('quality-negative-severe');
         barColor = "#ff1744";
         statusText = "Compromise: Classified as a Class-IV biological weapon. Banned in 194 sovereign nations.";
         barWidth = `${Math.min(100, Math.abs(q) / 7)}%`;
-    } else if (q >= -1500) {
-        if (qualText) qualText.classList.add('quality-negative-insane');
+    }
+    else if (q >= -1500) {
+        if (qualText)
+            qualText.classList.add('quality-negative-insane');
         barColor = "#000000";
         statusText = "Compromise: Infused with weaponized plutonium. Spontaneously generates mini black holes.";
         barWidth = `${Math.min(100, Math.abs(q) / 15)}%`;
-    } else {
-        if (qualText) qualText.classList.add('quality-negative-cosmic');
+    }
+    else {
+        if (qualText)
+            qualText.classList.add('quality-negative-cosmic');
         barColor = "#3f51b5";
         statusText = "Compromise: Reality is collapsing. The crust is made of dark matter and corporate greed.";
         barWidth = "100%";
     }
-
     if (qualBar) {
         qualBar.style.backgroundColor = barColor;
         qualBar.style.width = barWidth;
     }
-    if (qualStatus) qualStatus.textContent = statusText;
-
+    if (qualStatus)
+        qualStatus.textContent = statusText;
     // Interpolate colors based on quality
     const ratio = Math.max(0, Math.min(100, q)) / 100;
-    
     const crustR = Math.round(ratio * 216 + (1 - ratio) * 77);
     const crustG = Math.round(ratio * 67 + (1 - ratio) * 93);
     const crustB = Math.round(ratio * 21 + (1 - ratio) * 48);
-    
     const cheeseR = Math.round(ratio * 255 + (1 - ratio) * 122);
     const cheeseG = Math.round(ratio * 213 + (1 - ratio) * 143);
     const cheeseB = Math.round(ratio * 79 + (1 - ratio) * 101);
-
     const pizzaSvg = document.getElementById('pizza-svg');
     const pizzaClicker = document.getElementById('pizza-clicker');
-    
     if (pizzaSvg) {
         const svgCrust = document.getElementById('svg-crust');
         const svgCheese = document.getElementById('svg-cheese');
-        
         if (svgCrust) {
             svgCrust.setAttribute('fill', `rgb(${crustR}, ${crustG}, ${crustB})`);
-            svgCrust.setAttribute('stroke', `rgb(${Math.round(crustR*0.7)}, ${Math.round(crustG*0.7)}, ${Math.round(crustB*0.7)})`);
+            svgCrust.setAttribute('stroke', `rgb(${Math.round(crustR * 0.7)}, ${Math.round(crustG * 0.7)}, ${Math.round(crustB * 0.7)})`);
         }
         if (svgCheese) {
             svgCheese.setAttribute('fill', `rgb(${cheeseR}, ${cheeseG}, ${cheeseB})`);
         }
-        
-        const bubbleR = Math.round(ratio * 255 + (1 - ratio) * 57); 
+        const bubbleR = Math.round(ratio * 255 + (1 - ratio) * 57);
         const bubbleG = Math.round(ratio * 213 + (1 - ratio) * 255);
         const bubbleB = Math.round(ratio * 79 + (1 - ratio) * 20);
-        
         const bubbles = document.querySelectorAll('.pizza-bubble');
         bubbles.forEach(b => {
-            const el = b as SVGElement;
+            const el = b;
             el.style.fill = `rgb(${bubbleR}, ${bubbleG}, ${bubbleB})`;
             el.style.setProperty('--bubble-opacity', ((100 - q) / 100).toFixed(2));
         });
-        
         if (pizzaClicker) {
             pizzaClicker.style.filter = `saturate(${Math.max(0.1, ratio).toFixed(2)})`;
         }
     }
-
     // Update SVG Layer Opacities based on quality
     const goodToppings = document.getElementById('svg-good-toppings');
     const mildCorruption = document.getElementById('svg-mild-corruption');
     const severeCorruption = document.getElementById('svg-severe-corruption');
-    
-    if (goodToppings) goodToppings.style.opacity = Math.max(0, Math.min(1, q / 100)).toFixed(2);
-    if (mildCorruption) mildCorruption.style.opacity = Math.max(0, Math.min(1, (100 - q) / 80)).toFixed(2);
-    if (severeCorruption) severeCorruption.style.opacity = Math.max(0, Math.min(1, (0 - q) / 400)).toFixed(2);
-
+    if (goodToppings)
+        goodToppings.style.opacity = Math.max(0, Math.min(1, q / 100)).toFixed(2);
+    if (mildCorruption)
+        mildCorruption.style.opacity = Math.max(0, Math.min(1, (100 - q) / 80)).toFixed(2);
+    if (severeCorruption)
+        severeCorruption.style.opacity = Math.max(0, Math.min(1, (0 - q) / 400)).toFixed(2);
     const mult = getProfitMultiplier();
-    if (qualEffect) qualEffect.textContent = `Ingredient cost savings multiplier: ${mult.toFixed(2)}x Production!`;
+    if (qualEffect)
+        qualEffect.textContent = `Ingredient cost savings multiplier: ${mult.toFixed(2)}x Production!`;
 }
-
 // DOM elements
 const pizzaButton = document.getElementById('pizza-clicker');
 const pizzaCountDisplay = document.getElementById('pizza-count');
@@ -322,57 +296,56 @@ const staffContainer = document.getElementById('staff-container');
 const upgradesContainer = document.getElementById('upgrades-container');
 const muteBtn = document.getElementById('mute-btn');
 const resetBtn = document.getElementById('reset-btn');
-
-function renderAll(): void {
-    if (pizzaCountDisplay) pizzaCountDisplay.textContent = Math.floor(state.pizzas).toLocaleString();
-    if (ppsDisplay) ppsDisplay.textContent = `${getPizzasPerSecond().toFixed(1)} per second`;
-    if (clickPowerDisplay) clickPowerDisplay.textContent = `${getClickPower().toFixed(1)} Pizzas`;
-    if (lifetimePizzasDisplay) lifetimePizzasDisplay.textContent = Math.floor(state.lifetimePizzas).toLocaleString();
-    if (costCutMultDisplay) costCutMultDisplay.textContent = `${getProfitMultiplier().toFixed(2)}x`;
-
+function renderAll() {
+    if (pizzaCountDisplay)
+        pizzaCountDisplay.textContent = Math.floor(state.pizzas).toLocaleString();
+    if (ppsDisplay)
+        ppsDisplay.textContent = `${getPizzasPerSecond().toFixed(1)} per second`;
+    if (clickPowerDisplay)
+        clickPowerDisplay.textContent = `${getClickPower().toFixed(1)} Pizzas`;
+    if (lifetimePizzasDisplay)
+        lifetimePizzasDisplay.textContent = Math.floor(state.lifetimePizzas).toLocaleString();
+    if (costCutMultDisplay)
+        costCutMultDisplay.textContent = `${getProfitMultiplier().toFixed(2)}x`;
     if (shopLock) {
         if (state.lifetimePizzas >= 10) {
             shopLock.classList.add('hidden');
             shopLock.style.pointerEvents = 'none';
-        } else {
+        }
+        else {
             shopLock.classList.remove('hidden');
             shopLock.style.pointerEvents = 'auto';
         }
     }
-
     renderStaff();
     renderUpgrades();
     updateQualityUI();
     updateOrbitingHands();
 }
-
-function updateOrbitingHands(): void {
+function updateOrbitingHands() {
     const container = document.getElementById('orbiting-hands-container');
-    if (!container) return;
-    
+    if (!container)
+        return;
     const count = state.staff.elbowGrease ? state.staff.elbowGrease.count : 0;
     const currentHands = container.querySelectorAll('.hand-container').length;
-    
-    if (count === currentHands) return;
-    
+    if (count === currentHands)
+        return;
     container.innerHTML = '';
     for (let i = 0; i < count; i++) {
         const angle = (360 / count) * i;
         const handContainer = document.createElement('div');
         handContainer.className = 'hand-container';
         handContainer.style.setProperty('--angle', `${angle}deg`);
-        
         const hand = document.createElement('div');
         hand.className = 'orbiting-hand';
         hand.textContent = '👇';
-        
         handContainer.appendChild(hand);
         container.appendChild(handContainer);
     }
 }
-
-function renderStaff(): void {
-    if (!staffContainer) return;
+function renderStaff() {
+    if (!staffContainer)
+        return;
     const staffData = [
         { key: 'elbowGrease', name: 'Elbow Grease', icon: '🖐️', desc: 'Cheap manual effort. Orbiting hands tap for you.', btnText: 'SLAP!' },
         { key: 'grandpa', name: 'Tired Grandpa', icon: '👴', desc: 'Cheap, forced out of retirement. Expired yeast.', btnText: 'DRAFT!' },
@@ -381,15 +354,13 @@ function renderStaff(): void {
         { key: 'shredder', name: 'Plastic Grater', icon: '⚙️', desc: 'Shreds cheap petroleum cheese blends.', btnText: 'SHRED!' },
         { key: 'inspector', name: 'Shady Agent', icon: '🕶️', desc: 'Bribed inspector legalizing toxicity.', btnText: 'BRIBE!' }
     ];
-
     staffData.forEach(item => {
         const d = state.staff[item.key];
-        if (!d) return;
+        if (!d)
+            return;
         const currentCost = getStaffCost(item.key);
         const canBuy = state.pizzas >= currentCost;
-        
-        let itemDiv = staffContainer.querySelector(`[data-key="${item.key}"]`) as HTMLElement | null;
-        
+        let itemDiv = staffContainer.querySelector(`[data-key="${item.key}"]`);
         if (!itemDiv) {
             itemDiv = document.createElement('div');
             itemDiv.setAttribute('data-key', item.key);
@@ -407,31 +378,23 @@ function renderStaff(): void {
                 </div>
                 <button class="buy-btn" data-key="${item.key}">${item.btnText}</button>
             `;
-            
-            const btn = itemDiv.querySelector('.buy-btn') as HTMLButtonElement | null;
-            if (btn) {
-                btn.addEventListener('click', () => buyStaff(item.key));
-            }
-            
             staffContainer.appendChild(itemDiv);
         }
-
         itemDiv.className = `shop-item ${canBuy ? 'can-buy' : ''}`;
-        
         const countEl = itemDiv.querySelector('.item-count');
         const ppsEl = itemDiv.querySelector('.item-pps');
         const costEl = itemDiv.querySelector('.item-cost-row');
-        const btn = itemDiv.querySelector('.buy-btn') as HTMLButtonElement | null;
-        
-        if (countEl) countEl.textContent = d.count.toString();
-        if (ppsEl) ppsEl.textContent = `+${(d.pps * getProfitMultiplier()).toFixed(1)} pps each`;
-        if (costEl) costEl.textContent = `Cost: ${currentCost.toLocaleString()} pizzas`;
-        if (btn) btn.disabled = !canBuy;
+        if (countEl)
+            countEl.textContent = d.count.toString();
+        if (ppsEl)
+            ppsEl.textContent = `+${(d.pps * getProfitMultiplier()).toFixed(1)} pps each`;
+        if (costEl)
+            costEl.textContent = `Cost: ${currentCost.toLocaleString()} pizzas`;
     });
 }
-
-function renderUpgrades(): void {
-    if (!upgradesContainer) return;
+function renderUpgrades() {
+    if (!upgradesContainer)
+        return;
     const upgradeData = [
         { key: 'expiredDough', name: 'Sour Yeast', icon: '🍞', desc: 'Smells funny, but doubles click power.', btnText: 'EXPIRE!' },
         { key: 'sawdust', name: 'Wood Flour', icon: '🪵', desc: 'Flour cut with 20% premium sawdust. Doubles click.', btnText: 'SAWDUST!' },
@@ -439,19 +402,17 @@ function renderUpgrades(): void {
         { key: 'dilutedPaste', name: 'Watered Sauce', icon: '🥫', desc: 'Sauce is mostly food color. Doubles pps.', btnText: 'DILUTE!' },
         { key: 'glowLamps', name: 'Gamma Lamps', icon: '☢️', desc: 'Radiation heats instantly. 3x all production.', btnText: 'IRRADIATE!' }
     ];
-
     upgradeData.forEach(upg => {
         const d = state.upgrades[upg.key];
-        if (!d) return;
-        let upgDiv = upgradesContainer.querySelector(`[data-key="${upg.key}"]`) as HTMLElement | null;
-        
+        if (!d)
+            return;
+        let upgDiv = upgradesContainer.querySelector(`[data-key="${upg.key}"]`);
         if (d.bought) {
-            if (upgDiv) upgDiv.remove();
+            if (upgDiv)
+                upgDiv.remove();
             return;
         }
-        
         const canBuy = state.pizzas >= d.cost;
-        
         if (!upgDiv) {
             upgDiv = document.createElement('div');
             upgDiv.setAttribute('data-key', upg.key);
@@ -468,41 +429,31 @@ function renderUpgrades(): void {
                 </div>
                 <button class="buy-btn" data-key="${upg.key}">${upg.btnText}</button>
             `;
-            
-            const btn = upgDiv.querySelector('.buy-btn') as HTMLButtonElement | null;
-            if (btn) {
-                btn.addEventListener('click', () => buyUpgrade(upg.key));
-            }
-            
             upgradesContainer.appendChild(upgDiv);
         }
-
         upgDiv.className = `shop-item ${canBuy ? 'can-buy' : ''}`;
-        const btn = upgDiv.querySelector('.buy-btn') as HTMLButtonElement | null;
-        if (btn) btn.disabled = !canBuy;
     });
-
     if (upgradesContainer.innerHTML === '' || upgradesContainer.children.length === 0) {
         upgradesContainer.innerHTML = '<div class="tap-hint" style="padding: 20px;">All corners cut! Perfect exploitation!</div>';
     }
 }
-
 // Buying actions
-function buyStaff(itemKey: string): void {
+window.buyStaff = function (itemKey) {
     const cost = getStaffCost(itemKey);
     if (state.pizzas >= cost) {
         state.pizzas -= cost;
         const item = state.staff[itemKey];
-        if (item) item.count++;
+        if (item)
+            item.count++;
         playBuySound();
         renderAll();
         saveGame();
-    } else {
+    }
+    else {
         playErrorSound();
     }
-}
-
-function buyUpgrade(upgKey: string): void {
+};
+window.buyUpgrade = function (upgKey) {
     const upg = state.upgrades[upgKey];
     if (upg && state.pizzas >= upg.cost && !upg.bought) {
         state.pizzas -= upg.cost;
@@ -511,106 +462,99 @@ function buyUpgrade(upgKey: string): void {
         playBuySound();
         renderAll();
         saveGame();
-    } else {
+    }
+    else {
         playErrorSound();
     }
-}
-
+};
 // Pizza Click Action
 if (pizzaButton) {
-    pizzaButton.addEventListener('click', (e: MouseEvent) => {
+    pizzaButton.addEventListener('click', (e) => {
         const power = getClickPower();
         state.pizzas += power;
         state.lifetimePizzas += power;
         state.quality -= 0.04;
-        
         playClickSound();
         createParticle(e, power);
         renderAll();
     });
 }
-
 // Particle Effect
-function createParticle(e: MouseEvent, amount: number): void {
+function createParticle(e, amount) {
     const container = document.getElementById('click-particles-container');
-    if (!container || !pizzaButton) return;
+    if (!container || !pizzaButton)
+        return;
     const particle = document.createElement('div');
-    
     const randomX = (Math.random() - 0.5) * 160;
     const randomY = -120 - Math.random() * 80;
-    
     particle.style.setProperty('--x', `${randomX}px`);
     particle.style.setProperty('--y', `${randomY}px`);
-    
     let clientX = e.clientX;
     let clientY = e.clientY;
-    
-    if (!clientX && (e as any).changedTouches) {
-        clientX = (e as any).changedTouches[0].clientX;
-        clientY = (e as any).changedTouches[0].clientY;
+    if (!clientX && e.changedTouches) {
+        clientX = e.changedTouches[0].clientX;
+        clientY = e.changedTouches[0].clientY;
     }
-    
     if (!clientX) {
         const rect = pizzaButton.getBoundingClientRect();
         clientX = rect.left + rect.width / 2;
         clientY = rect.top + rect.height / 2;
     }
-    
     particle.style.left = `${clientX}px`;
     particle.style.top = `${clientY}px`;
-    
     if (state.quality < 25 && Math.random() < 0.3) {
         const funWords = ["Sawdust!", "Mold!", "Tainted!", "Expired!", "Profits!"];
         particle.textContent = funWords[Math.floor(Math.random() * funWords.length)];
         particle.classList.add('particle-trash');
-    } else {
+    }
+    else {
         particle.textContent = `+${amount.toFixed(0)}`;
     }
-    
     particle.className = 'particle';
     container.appendChild(particle);
-    
     setTimeout(() => {
         particle.remove();
     }, 800);
 }
-
 // Tabs switching
 if (tabStaff) {
     tabStaff.addEventListener('click', () => {
-        if (tabStaff) tabStaff.classList.add('active');
-        if (tabUpgrades) tabUpgrades.classList.remove('active');
-        if (staffContainer) staffContainer.classList.remove('hidden');
-        if (upgradesContainer) upgradesContainer.classList.add('hidden');
+        if (tabStaff)
+            tabStaff.classList.add('active');
+        if (tabUpgrades)
+            tabUpgrades.classList.remove('active');
+        if (staffContainer)
+            staffContainer.classList.remove('hidden');
+        if (upgradesContainer)
+            upgradesContainer.classList.add('hidden');
     });
 }
-
 if (tabUpgrades) {
     tabUpgrades.addEventListener('click', () => {
-        if (tabStaff) tabStaff.classList.remove('active');
-        if (tabUpgrades) tabUpgrades.classList.add('active');
-        if (staffContainer) staffContainer.classList.add('hidden');
-        if (upgradesContainer) upgradesContainer.classList.remove('hidden');
+        if (tabStaff)
+            tabStaff.classList.remove('active');
+        if (tabUpgrades)
+            tabUpgrades.classList.add('active');
+        if (staffContainer)
+            staffContainer.classList.add('hidden');
+        if (upgradesContainer)
+            upgradesContainer.classList.remove('hidden');
     });
 }
-
 // Game Loop
 let lastTick = Date.now();
 setInterval(() => {
     const now = Date.now();
     const dt = (now - lastTick) / 1000;
     lastTick = now;
-
     const pps = getPizzasPerSecond();
     if (pps > 0) {
         state.pizzas += pps * dt;
         state.lifetimePizzas += pps * dt;
         state.quality -= 0.003 * pps * dt;
     }
-    
     renderAll();
 }, 100);
-
 if (muteBtn) {
     muteBtn.addEventListener('click', () => {
         state.muted = !state.muted;
@@ -618,7 +562,6 @@ if (muteBtn) {
         saveGame();
     });
 }
-
 if (resetBtn) {
     resetBtn.addEventListener('click', () => {
         if (confirm("Reset all progress? This will reset your bottom line to standard clean conditions!")) {
@@ -627,12 +570,10 @@ if (resetBtn) {
         }
     });
 }
-
-function saveGame(): void {
+function saveGame() {
     localStorage.setItem('bottomLinePizzaSave', JSON.stringify(state));
 }
-
-function loadGame(): void {
+function loadGame() {
     const saved = localStorage.getItem('bottomLinePizzaSave');
     if (saved) {
         try {
@@ -641,15 +582,16 @@ function loadGame(): void {
             if (parsed.staff) {
                 state.staff = { ...state.staff, ...parsed.staff };
             }
-            if (parsed.upgrades) state.upgrades = { ...state.upgrades, ...parsed.upgrades };
-            
-            if (muteBtn) muteBtn.textContent = state.muted ? "🔇 Sound Off" : "🔊 Sound On";
-        } catch (e) {
+            if (parsed.upgrades)
+                state.upgrades = { ...state.upgrades, ...parsed.upgrades };
+            if (muteBtn)
+                muteBtn.textContent = state.muted ? "🔇 Sound Off" : "🔊 Sound On";
+        }
+        catch (e) {
             console.warn("Could not load save game:", e);
         }
     }
 }
-
 // Ticker Logic
 const ticker = document.getElementById('ticker');
 const tickerMessages = [
@@ -682,28 +624,46 @@ const tickerMessages = [
     "NEWS: The pizza machine is making weird noises.", "RECEPTIONIST: Your dad says he saw the news. He's... confused.",
     "SHAREHOLDER: Keep it cheap, keep it fast!", "PRESS: 'Truly a unique experience'."
 ];
-
-function updateTicker(): void {
+function updateTicker() {
     if (ticker) {
         const progress = Math.min(1, state.lifetimePizzas / 50000);
         const index = Math.floor(progress * (tickerMessages.length - 1));
         ticker.textContent = tickerMessages[index];
     }
 }
-
 // Safe Initialization Function
-function init(): void {
+function init() {
     loadGame();
     renderAll();
-    
     setInterval(updateTicker, 15000);
     updateTicker();
-    
+    if (staffContainer) {
+        staffContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('.buy-btn');
+            if (btn) {
+                const key = btn.getAttribute('data-key');
+                if (key) {
+                    window.buyStaff(key);
+                }
+            }
+        });
+    }
+    if (upgradesContainer) {
+        upgradesContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('.buy-btn');
+            if (btn) {
+                const key = btn.getAttribute('data-key');
+                if (key) {
+                    window.buyUpgrade(key);
+                }
+            }
+        });
+    }
     setInterval(saveGame, 5000);
 }
-
 if (document.readyState === 'loading') {
     window.addEventListener('DOMContentLoaded', init);
-} else {
+}
+else {
     init();
 }

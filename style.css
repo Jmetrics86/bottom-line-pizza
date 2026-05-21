@@ -452,8 +452,8 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10;
-    transition: opacity 0.5s ease-out, pointer-events 0.5s;
+    z-index: 200; /* Higher than buttons */
+    transition: opacity 0.5s ease-out;
 }
 
 .lock-box {
